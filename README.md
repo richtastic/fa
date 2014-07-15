@@ -14,15 +14,32 @@ sudo ln -s /opt/apache-ant-1.9.4-bin  /opt/ant
 sudo ln -s /opt/ant /usr/bin/ant
 ```
 
+### install JAVA JDK
+```
+# open
+sudo apt-get install openjdk-7-jdk
+# export PATH=$PATH:$JAVA_HOME/bin
+# oracle
+# sudo apt-get install oracle-java7-installer
+```
+
+### install 32 bit support for adb:
+```
+sudo apt-get install libstdc++6:i386 libgcc1:i386 zlib1g:i386 libncurses5:i386
+sudo apt-get install libsdl1.2debian:i386
+sudo apt-get install ia32-libs
+```
+
 ### install android
 ```
 # download http://developer.android.com/sdk/index.html#download
-wget ...
+wget http://dl.google.com/android/adt/adt-bundle-linux-x86_64-20140702.zip
+unzip adt-bundle-linux-x86_64-20140702
 # copy to /opt/adt
-sudo mv ... /opt/adt
-sudo ln -s ... /opt/adt
+sudo mv adt-bundle-linux-x86_64-20140702 /opt/adt
+sudo ln -s /opt/adt/sdk/platform-tools/adb /usr/bin/adb
 sudo ln -s /opt/adt/sdk/tools/android /usr/bin/android
-sudo ln -s ... /opt/eclipse-android
+sudo ln -s /opt/adt/eclipse/eclipse /usr/bin/eclipse-android
 sudo ln -s /opt/adt/sdk/build-tools/android-4.4W/zipalign /usr/bin/zipalign
 
 # update
@@ -30,8 +47,8 @@ android list sdk --all
 android update sdk -u
 android update sdk -u -a
 ```
+# http://developer.android.com/sdk/installing/installing-adt.html
 
-http://developer.android.com/sdk/installing/installing-adt.html
 
 
 ### x/ubuntu allow device usb access
@@ -119,8 +136,8 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="0930", MODE="0664", GROUP="plugdev"
 SUBSYSTEM=="usb", ATTR{idVendor}=="19d2", MODE="0664", GROUP="plugdev"
 
 # restart udev
-service udev restart
-udevadm control --reload-rules
+sudo service udev restart
+sudo udevadm control --reload-rules
 
 # restart
 sudo shutdown -r now
@@ -253,7 +270,8 @@ android-studio
 ```
 
 
-
+### references
+[http://developer.android.com/sdk/installing/installing-adt.html](http://developer.android.com/sdk/installing/installing-adt.html)
 
 ### command line references
 [http://developer.android.com/tools/projects/projects-cmdline.html](http://developer.android.com/tools/projects/projects-cmdline.html)
