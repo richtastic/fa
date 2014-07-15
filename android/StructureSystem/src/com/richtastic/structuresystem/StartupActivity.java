@@ -21,9 +21,15 @@ public class StartupActivity extends ActionBarActivity {
 		setContentView(R.layout.activity_startup);
 		
 		// home fragment
-		HomeMenuFragment homeFragment = new HomeMenuFragment();
-		homeFragment.setArguments(new Bundle());
-		getFragmentManager().beginTransaction().add(R.id.fragment_container, homeFragment).commit();
+		View fragmentContainer = findViewById(R.id.fragment_container); 
+		if(fragmentContainer != null){
+			Log.d(TAG,"has fragment container");
+			HomeMenuFragment homeFragment = new HomeMenuFragment();
+			homeFragment.setArguments(new Bundle());
+			getFragmentManager().beginTransaction().add(R.id.fragment_container, homeFragment).commit();
+		}else{
+			Log.d(TAG,"no fragment container");
+		}
 		
 		// load image
 		WebTask task = new WebTask();

@@ -1,0 +1,18 @@
+{
+	"image_directory":"",
+	"list": [
+		{
+			"id":"1",
+			"icon":"entry_icon.png",
+			"title":"Long Construction Title Goes Here",
+			"created":"2014-07-14:12:34Z",
+			"modified":"2014-07-18:01:23Z",
+			"author":{
+				"first_name":"John",
+				"last_name":"Smith",
+				"username":"jiffy"
+			}
+		}
+	],
+	"background":"background.png"
+}

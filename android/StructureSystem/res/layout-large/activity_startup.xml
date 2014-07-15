@@ -7,14 +7,16 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
+
     tools:context="com.richtastic.structuresystem.StartupActivity"
     >
-
+    <!--logo -->
     <RelativeLayout
-        android:id="@+id/layout_top"
+        android:id="@+id/logo_container"
         android:layout_weight="1"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#CC00FF00"
         >
     	<TextView
     	    android:layout_width="wrap_content"
@@ -22,34 +24,30 @@
     	    android:text="@string/hello_world"
 	    />
     </RelativeLayout>
-	
+	<!-- menu buttons -->
     <RelativeLayout
-        android:id="@+id/layout_bottom"
+        android:id="@+id/menu_container"
         android:layout_weight="1"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#CC0000FF"
         >
-    	<TextView
+    	<Button
     	    android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-    	    android:text="@string/hello_world"
+	        android:layout_centerHorizontal="true"
+	        android:background="@drawable/button_menu"
+    	    android:text="CLICK ME"
 	    />
     </RelativeLayout>
-    
-	<!-- Menu -->
-	<!-- 
+	<!-- Fragment -->
 	<RelativeLayout
 	    android:id="@+id/fragment_container"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
+	    android:layout_weight="2"
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+	    android:background="#FFFF0000"
 	    >
 	</RelativeLayout>
-	 -->
-	<!--<fragment
-	    android:name="com.richtastic.structuresystem.HomeMenuFragment"
-	    android:id="@+id/home_fragment"
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-	/> -->
-		
+	
 </LinearLayout>
