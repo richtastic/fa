@@ -24,11 +24,22 @@
         <activity
             android:name=".StartupActivity"
             android:label="@string/app_name" >
+            <!-- launching -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- startActivity / ForResult -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
+        <!-- service -->
+        <service 
+            android:name=".ReconstructionService"
+            android:exported="true"
+            />
     </application>
 
 </manifest>
