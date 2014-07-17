@@ -15,9 +15,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.PriorityQueue;
 import java.util.Set;
 import com.google.gson.*;
-import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 
 import com.richtastic.structuresystem.R;
@@ -32,10 +32,20 @@ public class Networking {
 	public static int REQUEST_PRIORITY_LOW = 4096;
 	public static int REQUEST_PRIORITY_MEDIUM = 2048;
 	public static int REQUEST_PRIORITY_HIGH = 0;
+	//
+	public static String EVENT_WEB_CALL_COMPLETE = "EVENT_WEB_CALL_COMPLETE";
+	//
 	public static int TYPE_EXPECTED_UNKNOWN = 0;
 	public static int TYPE_EXPECTED_STRING = 10;
 	public static int TYPE_EXPECTED_JSON = 20;
 	public static int TYPE_EXPECTED_IMAGE = 30;
+	//
+	public static String PARAM_URL = "PARAM_URL"; // String
+	public static String PARAM_METHOD = "PARAM_METHOD"; // String 
+	public static String PARAM_CACHE = "PARAM_CACHE"; // Boolean
+	public static String PARAM_EXPECTED = "PARAM_EXPECTED"; // Integer
+	public static String PARAM_PROPERTIES = "PARAM_PROPERTIES"; // HashMap<String,String>
+	public static String PARAM_CALLBACK = "PARAM_CALLBACK"; // Callback
 	//
 	private static Networking instance;
 	// class methods
@@ -54,35 +64,81 @@ public class Networking {
 		WebRequest request = new WebRequest(url);
 		throttle.addRequest(request);
 	}
-	//
-	public class WebRequest{
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	public static class WebRequest implements Callback{
 		public String url;
 		public int priority;
+		private ArrayList<WeakReference<Callback>> concerned;
 		public WebRequest(String u, int p){
 			url = u;
 			priority = p;
+			concerned = new ArrayList<WeakReference<Callback>>();
 		}
 		public WebRequest(String u){
 			this(u, REQUEST_PRIORITY_MEDIUM);
 		}
+		public void addCallback(Callback callback){
+			concerned.add(new WeakReference<Callback>(callback));
+		}
+		private void alertConcerned(Object... params){
+			Callback callback;
+			for(WeakReference<Callback> cb : concerned){
+				callback = cb.get();
+				if(callback!=null){
+					callback.callback(params);
+				}
+			}
+		}
+		private void clear(){
+			if(concerned!=null){
+				concerned.clear();
+				concerned = null;
+			}
+			url = null;
+			priority = 0;
+		}
+		@Override
+		public void callback(Object... params) {
+			alertConcerned(params);
+			clear();
+		}
 	}
-	public class WebThrottle{
-		protected ArrayList<WebRequest> requestList;
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	public static class WebThrottle{
+		protected int maxRequests = 3;
+		protected ArrayList<WebRequest> currentRequests;
+		protected PriorityQueue<WebRequest> requestQueue;
 		protected WebRequest currentRequest;
+//		protected Callback requestCallback;
 		public WebThrottle(){
-			requestList = new ArrayList<WebRequest>();
+			requestQueue = new PriorityQueue<WebRequest>();
 			currentRequest = null;
+//			requestCallback = new Callback(){
+//				@Override
+//				public void callback(Object... params) {
+//					// TODO Auto-generated method stub
+//					
+//				}
+//			}
+		}
+		public void completeRequest(WebRequest request){
+			currentRequests.remove(request);
+			checkNextRequest();
 		}
 		public void addRequest(WebRequest request){
-			requestList.add(request);
+			requestQueue.add(request);
 			checkNextRequest();
 		}
 		private void checkNextRequest(){
-			if(currentRequest==null){
-				// check
+			if( currentRequests.size()>0 && currentRequests.size()<maxRequests ){
+				WebRequest request = requestQueue.remove();
+				if(currentRequest==null){
+					// check
+				}
 			}
 		}
 	}
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	public static String readInputAsString(InputStream inStream){
 		int bufferLen = 256;
 		int read = 1;
@@ -99,22 +155,15 @@ public class Networking {
 				}
 			}
 		}catch(Exception e){
-			//Log.d(TAG,"fail read");
-		}finally{
-			//Log.d(TAG,"finally read");
+			//
 		}
 		return returnString;
 	}
-	// http://developer.android.com/reference/android/os/AsyncTask.html
 	public static Object connectionResultToKnownType(URLConnection connection, int expectedType){
-		Object response;
-		InputStream inStream;
 		try{
-			inStream = connection.getInputStream();
-			String contentType = connection.getContentType();
-			Log.d(TAG,"type: "+contentType);
-			response = connection.getContent();
-			Log.d(TAG,"response: "+response);
+			InputStream inStream = connection.getInputStream();
+			//String contentType = connection.getContentType();
+			//Object response = connection.getContent();
 			if(expectedType==TYPE_EXPECTED_IMAGE){
 				Log.d(TAG,"isBitmap");
 				return instreamToBitmap(inStream);
@@ -139,28 +188,17 @@ public class Networking {
 	}
 	public static Object instreamToJSON(InputStream inStream){
 		Gson gson = new Gson();
-		Log.d(TAG,"to JSON");
 		try{
 			JsonReader reader = new JsonReader(new InputStreamReader(inStream,"UTF-8"));
 			JsonObject json = gson.fromJson(reader, JsonObject.class);
-			Log.d(TAG,"JSON: "+json);
-			JsonElement kind = json.get("kind");
-			Log.d(TAG,"kind: "+kind);
-			String kindString = kind.getAsString();
-			Log.d(TAG,"kind: "+kindString);
+			return json;
 		}catch(UnsupportedEncodingException e){
 			e.printStackTrace();
 		}
 		return null;
 	}
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	public static class WebTask extends AsyncTask<Object,Object,Object>{ // <do-in-background-params, progress-params, post-execute-result>
-		public static String EVENT_CALL_COMPLETE = "EVENT_CALL_COMPLETE";
-		public static String PARAM_URL = "PARAM_URL"; // String
-		public static String PARAM_METHOD = "PARAM_METHOD"; // String 
-		public static String PARAM_CACHE = "PARAM_CACHE"; // Boolean
-		public static String PARAM_EXPECTED = "PARAM_EXPECTED"; // Integer
-		public static String PARAM_PROPERTIES = "PARAM_PROPERTIES"; // HashMap<String,String>
-		public static String PARAM_CALLBACK = "PARAM_CALLBACK"; // Callback
 		private WeakReference<Callback> callback;
 		private HttpURLConnection connection = null;
 		private Object responseObject = null;
@@ -190,8 +228,6 @@ public class Networking {
 			int readTimeout = 15000; // 15 seconds
 			HashMap<String,Object> inParams;
 			String requestMethod = "GET";
-//			int requestExpectedType = TYPE_EXPECTED_IMAGE;
-//			String requestURL = "https://www.google.com/images/srpr/logo11w.png";
 			int requestExpectedType = TYPE_EXPECTED_JSON;
 			String requestURL = "http://www.reddit.com/.json";
 			HashMap<String,String> requestProperties = null;//new HashMap<String,String>();
@@ -204,6 +240,9 @@ public class Networking {
 					requestCallback = (Callback)paramZero;
 				}else if(paramZero instanceof HashMap){
 					inParams = (HashMap<String,Object>)paramZero;
+					if( inParams.get(PARAM_CALLBACK) != null ){
+						requestCallback = (Callback)inParams.get(PARAM_CALLBACK);
+					}
 					if( inParams.get(PARAM_URL) != null ){
 						requestURL = (String)inParams.get(PARAM_URL);
 					}
@@ -216,6 +255,9 @@ public class Networking {
 					if( inParams.get(PARAM_PROPERTIES) != null ){
 						HashMap<String,String> props = (HashMap<String,String>)inParams.get(PARAM_PROPERTIES);
 						requestProperties = props;
+					}
+					if( inParams.get(PARAM_EXPECTED) != null ){
+						requestExpectedType = (Integer)inParams.get(PARAM_EXPECTED);
 					}
 				}
 			}
@@ -241,14 +283,6 @@ public class Networking {
 				for(Entry<String,String> entry : requestProperties.entrySet()){
 					connection.setRequestProperty(entry.getKey(),entry.getValue());
 				}
-				/*Set<String> properties = requestProperties.keySet();
-				Iterator<String> iter = properties.iterator();
-				String key, value;
-				while( iter.hasNext()){
-					key = iter.next();
-					value = requestProperties.get(key);
-					connection.setRequestProperty(key,value);
-				}*/
 			}
 			// set timeouts
 			connection.setConnectTimeout(connectTimeout);
@@ -281,7 +315,7 @@ public class Networking {
 			if(callback!=null){
 				Callback cb = (Callback)callback.get();
 				if(cb!=null){
-					cb.callback(EVENT_CALL_COMPLETE, result, responseCode, responseObject); // HttpURLConnection.HTTP_OK
+					cb.callback(EVENT_WEB_CALL_COMPLETE, result, responseCode, responseObject); // HttpURLConnection.HTTP_OK
 				}
 			}
 			clear();

@@ -39,6 +39,9 @@ Activity - onCreate (Bundle)
 Activity - onStart
 Activity - onRestoreInstanceState (Bundle)
 Activity - onResume
+
+# [ask for new activity]
+
 ```
 
 - Tell if app is returning from a rotation, and not fresh : onCreate.Bundle != null
@@ -124,6 +127,15 @@ start
 bind
 unbind
 stop
+
+
+
+## Layouts
+
+
+### Custom
+
+https://gist.github.com/martyglaubitz/c6e6cc8248bc9978274c
 
 
 
@@ -226,6 +238,36 @@ cp ./google-gson-2.2.4-release/gson-2.2.4.jar ...
 
 
 
+
+
+
+
+
+
+
+## JAVA
+```JAVA
+HashMap<String,String> requestProperties;
+for(Entry<String,String> entry : requestProperties.entrySet()){
+	connection.setRequestProperty(entry.getKey(),entry.getValue());
+}
+
+Set<String> properties = requestProperties.keySet();
+Iterator<String> iter = properties.iterator();
+String key, value;
+while( iter.hasNext()){
+	key = iter.next();
+	value = requestProperties.get(key);
+	connection.setRequestProperty(key,value);
+}
+
+-------------
+ArrayList<Type> list;
+for(Type obj : list){
+	...
+}
+```
+http://developer.android.com/reference/android/os/AsyncTask.html
 
 
 

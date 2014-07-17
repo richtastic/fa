@@ -2,7 +2,9 @@ package com.richtastic.structuresystem;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.util.HashMap;
 
+import com.google.gson.JsonObject;
 import com.richtastic.code.*;
 import com.richtastic.code.Networking.WebTask;
 
@@ -133,7 +135,12 @@ data = 1;
 		super.finish();
 	}
 	
-	
+	public void onClickGalleryButton(View v){
+		Log.d(TAG,"gallery...");
+		Intent pushIntent = new Intent(this,SubmissionGalleryActivity.class);
+		//pushIntent.putExtra("EXTRA","qwe");
+		startActivityForResult(pushIntent, 99);
+	}
 	public void onClickFinishButton(View v){
 		Log.d(TAG,"finish...");
 		finish();
@@ -150,24 +157,56 @@ data = 1;
 		}
 	}
 	private void startSingleRequest(){
-		Callback callback = new Callback(){
+		// Networking.EVENT_WEB_CALL_COMPLETE
+//		// load json
+//		HashMap<String,Object> hash = new HashMap<String,Object>();
+//		hash.put(Networking.PARAM_URL,"http://www.reddit.com/.json");
+//		hash.put(Networking.PARAM_EXPECTED,Networking.TYPE_EXPECTED_JSON);
+//		hash.put(Networking.PARAM_CALLBACK,new Callback(){
+//			public void callback(Object... params){
+//				if(params.length>1){
+//					JsonObject response = (JsonObject)params[1];
+//					Log.d(TAG,"response: "+response);
+//					Log.d(TAG,"type: "+params[2]);
+//				}
+//			}
+//		});
+//		new WebTask().execute(hash);
+		
+//		// load string
+//		HashMap<String,Object> hash = new HashMap<String,Object>();
+//		hash.put(Networking.PARAM_URL,"http://www.w3.org/Graphics/GIF/spec-gif87.txt");
+//		hash.put(Networking.PARAM_EXPECTED,Networking.TYPE_EXPECTED_STRING);
+//		hash.put(Networking.PARAM_CALLBACK,new Callback(){
+//			public void callback(Object... params){
+//				if(params.length>1){
+//					String response = (String)params[1];
+//					Log.d(TAG,"response: "+response);
+//					Log.d(TAG,"type: "+params[2]);
+//				}
+//			}
+//		});
+//		new WebTask().execute(hash);
+		
+		// load image
+		HashMap<String,Object> hash = new HashMap<String,Object>();
+		hash.put(Networking.PARAM_URL,"https://www.google.com/images/srpr/logo11w.png");
+		hash.put(Networking.PARAM_EXPECTED,Networking.TYPE_EXPECTED_IMAGE);
+		hash.put(Networking.PARAM_CALLBACK,new Callback(){
 			public void callback(Object... params){
-				Log.d(TAG,"PARAMS: "+params);
-				if(params.length>1){
-					String eventType = (String)params[0];
-					Log.d(TAG,"result for: "+eventType);
-					Object response = params[1];
-					Log.d(TAG,"response: "+response);
-//					Bitmap bitmap = (Bitmap)response;
-//					Log.d(TAG,"bitmap: "+bitmap);
-//					ImageView image = (ImageView)findViewById(R.id.display_image);
-//					image.setImageBitmap(bitmap);
+				Object response = params[1];
+				if(response!=null){
+					Bitmap bitmap = (Bitmap)response;
+					Log.d(TAG,"bitmap: "+bitmap);
+					ImageView image = (ImageView)findViewById(R.id.display_image);
+					image.setImageBitmap(bitmap);
+				}else{
+					Log.d(TAG,"load error - status: "+params[2]);
 				}
 			}
-		};
-		// load image
+		});
 		WebTask task = new WebTask();
-		task.execute(callback);
+		task.execute(hash);
 	}
 	
 }
