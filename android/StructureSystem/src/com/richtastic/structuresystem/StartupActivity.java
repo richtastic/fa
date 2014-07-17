@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import com.google.gson.JsonObject;
 import com.richtastic.code.*;
-import com.richtastic.code.Networking.WebTask;
+import com.richtastic.code.Networking.*;
 
 import android.support.v7.app.ActionBarActivity;
 //import android.support.v4.app.*;
@@ -138,6 +138,7 @@ data = 1;
 	public void onClickGalleryButton(View v){
 		Log.d(TAG,"gallery...");
 		Intent pushIntent = new Intent(this,SubmissionGalleryActivity.class);
+//Intent pushIntent = new Intent(this,StartupActivity.class);
 		//pushIntent.putExtra("EXTRA","qwe");
 		startActivityForResult(pushIntent, 99);
 	}
@@ -188,25 +189,40 @@ data = 1;
 //		});
 //		new WebTask().execute(hash);
 		
-		// load image
-		HashMap<String,Object> hash = new HashMap<String,Object>();
-		hash.put(Networking.PARAM_URL,"https://www.google.com/images/srpr/logo11w.png");
-		hash.put(Networking.PARAM_EXPECTED,Networking.TYPE_EXPECTED_IMAGE);
-		hash.put(Networking.PARAM_CALLBACK,new Callback(){
+//		// load image
+//		HashMap<String,Object> hash = new HashMap<String,Object>();
+//		hash.put(Networking.PARAM_URL,"https://www.google.com/images/srpr/logo11w.png");
+//		hash.put(Networking.PARAM_EXPECTED,Networking.TYPE_EXPECTED_IMAGE);
+//		hash.put(Networking.PARAM_CALLBACK,new Callback(){
+//			public void callback(Object... params){
+//				Object response = params[1];
+//				if(response!=null){
+//					Bitmap bitmap = (Bitmap)response;
+//					Log.d(TAG,"bitmap: "+bitmap);
+//					ImageView image = (ImageView)findViewById(R.id.display_image);
+//					image.setImageBitmap(bitmap);
+//				}else{
+//					Log.d(TAG,"load error - status: "+params[2]);
+//				}
+//			}
+//		});
+//		WebTask task = new WebTask();
+//		task.execute(hash);
+		
+		// 'automated' image loading
+		Networking.getSharedInstance().addRequest("https://www.google.com/images/srpr/logo11w.png", Networking.TYPE_EXPECTED_IMAGE, new Callback(){
 			public void callback(Object... params){
-				Object response = params[1];
-				if(response!=null){
-					Bitmap bitmap = (Bitmap)response;
-					Log.d(TAG,"bitmap: "+bitmap);
-					ImageView image = (ImageView)findViewById(R.id.display_image);
-					image.setImageBitmap(bitmap);
-				}else{
-					Log.d(TAG,"load error - status: "+params[2]);
-				}
+			Object response = params[1];
+			if(response!=null){
+				Bitmap bitmap = (Bitmap)response;
+				Log.d(TAG,"bitmap: "+bitmap);
+				ImageView image = (ImageView)findViewById(R.id.display_image);
+				image.setImageBitmap(bitmap);
+			}else{
+				Log.d(TAG,"load error - status: "+params[2]);
 			}
+		}
 		});
-		WebTask task = new WebTask();
-		task.execute(hash);
 	}
 	
 }

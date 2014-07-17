@@ -34,18 +34,34 @@ Activity - onPause
 Activity - onSaveInstanceState (Bundle)
 Activity - onStop
 Activity - onDestroy
-(---)
+# (...)
 Activity - onCreate (Bundle)
 Activity - onStart
 Activity - onRestoreInstanceState (Bundle)
 Activity - onResume
 
-# [ask for new activity]
+# [startActivityForResult+intent for new activity (push)]
+Activity - onPause
+NewActivity - onCreate (null)
+NewActivity - onStart
+NewActivity - onResume
+Activity - onSaveInstanceState (Bundle)
+Activity - onStop
+
+# [finish new activity (pop)]
+NewActivity - onPause
+Activity - onActivityResult
+Activity - onRestart
+Activity - onStart
+Activity - onResume
+NewActivity - onStop
+NewActivity - onDestroy
 
 ```
 
+
 - Tell if app is returning from a rotation, and not fresh : onCreate.Bundle != null
-- Tell if app is pushed/popped?
+- Tell if app is pushed/popped? - onActivityResult
 
 
 
@@ -181,16 +197,14 @@ RelativeLayout --
 
 ### TODO:
 
-
-- downloading net
 * push/pop activity state save/restore/delete
 * dynamic positioning
 - saving fragment state
 * service (disneyid) across activities 
+- optimized lists (re-using rows/cells whatnot) - ListView?
 - mem caching
 - disk caching
 - auto-loading/notifying image (receiver) on bitmap ready
-- web request throttling
 
 - opening/playing video (from file)
 

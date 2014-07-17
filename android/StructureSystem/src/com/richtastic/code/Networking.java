@@ -11,6 +11,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -55,27 +56,55 @@ public class Networking {
 		}
 		return instance;
 	}
-	// instance methods
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	private WebThrottle throttle;
 	public Networking(){
 		throttle = new WebThrottle();
 	}
-	public void addRequest(String url){
-		WebRequest request = new WebRequest(url);
+	public void addRequest(String url, int type, Callback callback){
+		WebRequest request = new WebRequest(url, type);
+		request.addCallback(callback);
+		throttle.addRequest(request);
+	}
+	public void addRequest(WebRequest request){ // filled out by caller
 		throttle.addRequest(request);
 	}
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	public static class WebRequest implements Callback{
 		public String url;
-		public int priority;
+		private int priority;
+		private WebThrottle throttle;
 		private ArrayList<WeakReference<Callback>> concerned;
-		public WebRequest(String u, int p){
-			url = u;
-			priority = p;
+		private WebTask task;
+		private HashMap<String,Object> hash;
+		private HashMap<String,String> properties;
+		public WebRequest(String url, int expected, int priority){
+			this.url = url;
+			this.priority = priority;
 			concerned = new ArrayList<WeakReference<Callback>>();
+			throttle = null;
+			task = null;
+			properties = new HashMap<String,String>();
+			hash = new HashMap<String,Object>();
+			hash.put(Networking.PARAM_CALLBACK,this);
+			hash.put(Networking.PARAM_URL,url);
+			hash.put(Networking.PARAM_EXPECTED,expected);
+			hash.put(Networking.PARAM_PROPERTIES, properties);
 		}
-		public WebRequest(String u){
-			this(u, REQUEST_PRIORITY_MEDIUM);
+		public WebRequest(String url, int expected){
+			this(url, expected, REQUEST_PRIORITY_MEDIUM);
+		}
+		public void setProperty(String key, String value){
+			properties.put(key, value);
+		}
+		public void setPriority(int newPriority){
+			priority = newPriority;
+		}
+		public int getPriority(){
+			return priority;
+		}
+		public void setThrottle(WebThrottle newThrottle){
+			throttle = newThrottle;
 		}
 		public void addCallback(Callback callback){
 			concerned.add(new WeakReference<Callback>(callback));
@@ -88,14 +117,35 @@ public class Networking {
 					callback.callback(params);
 				}
 			}
+			if(throttle != null){
+				throttle.requestDidComplete(this);
+			}
 		}
 		private void clear(){
+			if(properties!=null){
+				properties.clear();
+				properties = null;
+			}
+			if(hash!=null){
+				hash.clear();
+				hash = null;
+			}
+			if(task!=null){
+				task.cancel(true);
+				task = null;
+			}
 			if(concerned!=null){
 				concerned.clear();
 				concerned = null;
 			}
 			url = null;
 			priority = 0;
+		}
+		public void start(){
+			if(task==null){
+				task = new WebTask();
+				task.execute(hash);
+			}
 		}
 		@Override
 		public void callback(Object... params) {
@@ -108,35 +158,40 @@ public class Networking {
 		protected int maxRequests = 3;
 		protected ArrayList<WebRequest> currentRequests;
 		protected PriorityQueue<WebRequest> requestQueue;
-		protected WebRequest currentRequest;
-//		protected Callback requestCallback;
 		public WebThrottle(){
-			requestQueue = new PriorityQueue<WebRequest>();
-			currentRequest = null;
-//			requestCallback = new Callback(){
-//				@Override
-//				public void callback(Object... params) {
-//					// TODO Auto-generated method stub
-//					
-//				}
-//			}
+			WebRequestComparator compare = new WebRequestComparator();
+			requestQueue = new PriorityQueue<WebRequest>(maxRequests,compare);
+			currentRequests = new ArrayList<WebRequest>();
 		}
-		public void completeRequest(WebRequest request){
+		public void requestDidComplete(WebRequest request){
 			currentRequests.remove(request);
+			request.clear();
 			checkNextRequest();
 		}
 		public void addRequest(WebRequest request){
+			request.setThrottle(this); 
 			requestQueue.add(request);
 			checkNextRequest();
 		}
 		private void checkNextRequest(){
-			if( currentRequests.size()>0 && currentRequests.size()<maxRequests ){
-				WebRequest request = requestQueue.remove();
-				if(currentRequest==null){
-					// check
+			Log.d(TAG,"check next: "+currentRequests.size());
+			if( currentRequests.size()>=0 && currentRequests.size()<maxRequests ){
+				Log.d(TAG,"queue size: "+requestQueue.size());
+				if(requestQueue.size()>0){
+					WebRequest request = requestQueue.remove();
+					currentRequests.add(request);
+					request.start();
 				}
 			}
 		}
+	}
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	public static class WebRequestComparator implements Comparator<WebRequest>{
+		@Override
+		public int compare(WebRequest a, WebRequest b){
+			return a.getPriority()-b.getPriority();
+		}
+		
 	}
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	public static String readInputAsString(InputStream inStream){
