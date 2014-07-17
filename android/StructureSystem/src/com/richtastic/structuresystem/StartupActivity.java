@@ -7,6 +7,7 @@ import com.richtastic.code.*;
 import com.richtastic.code.Networking.WebTask;
 
 import android.support.v7.app.ActionBarActivity;
+//import android.support.v4.app.*;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
@@ -152,26 +153,15 @@ data = 1;
 		Callback callback = new Callback(){
 			public void callback(Object... params){
 				Log.d(TAG,"PARAMS: "+params);
-				if(params.length>0){
-					Object response = params[0];
-//					Log.d(TAG,"response: "+response);
-//					//if(response instanceof Bitmap){
-//					
-//					URLConnection connection = (URLConnection)response;
-//					Log.d(TAG,"connection: "+connection);
-//					InputStream inStream = null;
-//					try{ inStream = connection.getInputStream();
-//					}catch(IOException e){ e.printStackTrace(); }
-//					Log.d(TAG,"instream: "+inStream);
-//						Bitmap bitmap = BitmapFactory.decodeStream(inStream); // (Bitmap)response; // android.os.NetworkOnMainThreadException
-//						Log.d(TAG,"bitmap: "+bitmap);
-//						ImageView image = (ImageView)findViewById(R.id.display_image);
-//						image.setImageBitmap(bitmap);
-//					//}
-					Bitmap bitmap = (Bitmap)response;
-					Log.d(TAG,"bitmap: "+bitmap);
-					ImageView image = (ImageView)findViewById(R.id.display_image);
-					image.setImageBitmap(bitmap);
+				if(params.length>1){
+					String eventType = (String)params[0];
+					Log.d(TAG,"result for: "+eventType);
+					Object response = params[1];
+					Log.d(TAG,"response: "+response);
+//					Bitmap bitmap = (Bitmap)response;
+//					Log.d(TAG,"bitmap: "+bitmap);
+//					ImageView image = (ImageView)findViewById(R.id.display_image);
+//					image.setImageBitmap(bitmap);
 				}
 			}
 		};

@@ -165,7 +165,65 @@ RelativeLayout --
 
 
 
-DOIN SUM PLANNIN
+# DOIN SUM PLANNIN
+
+### TODO:
+
+
+- downloading net
+* push/pop activity state save/restore/delete
+* dynamic positioning
+- saving fragment state
+* service (disneyid) across activities 
+- mem caching
+- disk caching
+- auto-loading/notifying image (receiver) on bitmap ready
+- web request throttling
+
+- opening/playing video (from file)
+
+
+
+CACHING OPTIONS
+get an outdated image if available, but get fresh source copy as well
+memory caching optional
+disk caching optional
+
+url-specific:
+http/https
+- allow for header (Authorization: Bearer bla, etc)
+- test (GET),POST,PUT,DELETE
+- getting back response code
+
+image-specific:
+Bitmap config (565)
+show loading icon (image or system)
+fade-in animation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Libraries:
+
+### JSON: GSON
+```
+# http://code.google.com/p/google-gson/downloads/detail?name=google-gson-2.2.4-release.zip
+wget http://google-gson.googlecode.com/files/google-gson-2.2.4-release.zip
+unzip google-gson-2.2.4-release.zip
+cp ./google-gson-2.2.4-release/gson-2.2.4.jar ...
+```
+
 
 
 
