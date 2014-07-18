@@ -41,6 +41,11 @@
             android:name=".SubmissionGalleryActivity"
             android:label="@string/app_name" >
 		</activity>
+		<!-- service -->
+        <service 
+            android:name=".FeatureIdentificationService"
+            android:exported="true"
+            />
         <!-- service -->
         <service 
             android:name=".ReconstructionService"

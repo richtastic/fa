@@ -3,6 +3,7 @@ package com.richtastic.structuresystem;
 //import android.app.Service;
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.Notification.Builder;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -23,19 +24,16 @@ public class ReconstructionService extends IntentService{
 	protected void onHandleIntent(Intent intent) {
 		Log.d(TAG," onHandleIntent");
 		int id = 1234567;
-		Notification notification = new Notification(R.drawable.ic_launcher,"Reconstruction Background",System.currentTimeMillis());
-		notification.flags = Notification.FLAG_ONGOING_EVENT;
-		
 		Intent request = new Intent(this, StartupActivity.class);
-		request.setFlags(Notification.FLAG_ONGOING_EVENT);
-		//request.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-		
+		request.setFlags(Notification.FLAG_ONGOING_EVENT); // request.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		PendingIntent pi = PendingIntent.getActivity(this, 0, request, Notification.FLAG_ONGOING_EVENT);
-		notification.setLatestEventInfo(this, "TITLE GOES HERE", "LONG DESCRIPTION HERE", pi);
+		// getApplicationContext()
+		Notification notification = new Notification.Builder(this).setContentTitle("TITLE GOES HERE").setContentText("LONG DESC HERE").setContentIntent(pi).build();
+		//new Notification(R.drawable.ic_launcher,"Reconstruction Background",System.currentTimeMillis());
+		notification.flags = Notification.FLAG_ONGOING_EVENT;
 		
 		startForeground(id, notification);
 		
-		//
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE); 
 		
 		// do work

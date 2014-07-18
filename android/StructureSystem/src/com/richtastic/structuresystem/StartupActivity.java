@@ -12,7 +12,13 @@ import android.support.v7.app.ActionBarActivity;
 //import android.support.v4.app.*;
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.FragmentManager;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -27,7 +33,20 @@ public class StartupActivity extends ActionBarActivity {
 	private static String TAG = "StartupActivity";
 	private static String STATE_DATA = "STATE_DATA";
 	// ------------------------------------------------------------------------------------------
-	private int data = 0; 
+	private int data = 0;
+private Messenger mMessenger = null;
+private ServiceConnection mConnection = new ServiceConnection(){
+	@Override
+	public void onServiceConnected(ComponentName name, IBinder binder){
+		Log.d(TAG, "StartupActivity - onServiceConnected ("+name+","+binder+")");
+		mMessenger = new Messenger(binder);
+	}
+	@Override
+	public void onServiceDisconnected(ComponentName name){
+		Log.d(TAG, "StartupActivity - onServiceDisconnected ("+name+")");
+		mMessenger = null;
+	}
+};
 	// ------------------------------------------------------------------------------------------
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -42,27 +61,53 @@ public class StartupActivity extends ActionBarActivity {
 			Log.d(TAG,"found: "+savedInstanceState.getInt(STATE_DATA));
 		}else{ // new
 			Log.d(TAG,"new from scratch "+data);
-//			Intent serviceIntent = new Intent(this, ReconstructionService.class);
-//			startService(serviceIntent);
-			
+//Intent serviceIntent = new Intent(this, ReconstructionService.class);
+//startService(serviceIntent);
 //stopService(serviceIntent);
+			
+			
+//			
+//			BroadcastReceiver receiver;
+//			IntentFilter filter = new IntentFilter();
+//			this.registerReceiver(receiver, filter);
 		}
+
+Intent serviceIntent = new Intent(this, FeatureIdentificationService.class);
+int flags = Context.BIND_AUTO_CREATE;
+this.bindService(serviceIntent, mConnection, flags);
 		//
 		setContentView(R.layout.activity_startup);
 		
-		// home fragment
-		View fragmentContainer = findViewById(R.id.fragment_container); 
-		if(fragmentContainer != null){
-			Log.d(TAG,"has fragment container");
-			HomeMenuFragment homeFragment = new HomeMenuFragment();
-			homeFragment.setArguments(new Bundle());
-			getFragmentManager().beginTransaction().add(R.id.fragment_container, homeFragment).commit();
-		}else{
-			Log.d(TAG,"no fragment container");
+		if(savedInstanceState==null){ // only add fragments on initial create
+			// home fragment
+			View fragmentHomeContainer = findViewById(R.id.fragment_container_home);
+			if(fragmentHomeContainer != null){
+				Log.d(TAG,"has home fragment container");
+				HomeMenuFragment homeFragment = new HomeMenuFragment();
+				homeFragment.setArguments(new Bundle());
+				getFragmentManager().beginTransaction().add(R.id.fragment_container_home, homeFragment).commit();
+			}else{
+				Log.d(TAG,"no fragment home container");
+			}
+			
+			// gallery fragment
+			View fragmentGalleryContainer = findViewById(R.id.fragment_container_gallery); 
+			if(fragmentGalleryContainer != null){
+				Log.d(TAG,"has gallery fragment container");
+				SubmissionGalleryFragment galleryFragment = new SubmissionGalleryFragment();
+				galleryFragment.setArguments(new Bundle());
+				getFragmentManager().beginTransaction().add(R.id.fragment_container_gallery, galleryFragment).commit();
+			}else{
+				Log.d(TAG,"no fragment gallery container");
+			}
 		}
-data = 1;
+	data = 1;
 		
 	}
+	
+	
+	
+	
 	@Override
 	protected void onStart(){
 		super.onStart();
@@ -92,12 +137,16 @@ data = 1;
 	protected void onSaveInstanceState(Bundle outState){
 		super.onSaveInstanceState(outState);
 		Log.d(TAG, "StartupActivity - onSaveInstanceState ("+outState+")");
-		outState.putInt(STATE_DATA,data);
+		outState.putInt(STATE_DATA,999);
 	}
 	@Override
 	protected void onStop(){
 		super.onStop();
 		Log.d(TAG, "StartupActivity - onStop "+data);
+if(mMessenger!=null){
+	unbindService(mConnection);
+	mMessenger = null;
+}
 	}
 	@Override
 	protected void onDestroy(){
@@ -133,6 +182,43 @@ data = 1;
 		intent.putExtra("KEY_RESULT_HERE", "done");
 		this.setResult(Activity.RESULT_OK, intent);
 		super.finish();
+	}
+	
+	public void onClickButton(View v){
+		Log.d(TAG,"...click...");
+		
+if(mMessenger!=null){
+	Message message = Message.obtain(null, 4); // Message.obtain();
+	message.replyTo = mMessenger;
+	try {
+		mMessenger.send(message);
+	} catch (RemoteException e) {
+		e.printStackTrace();
+	}
+}
+/*
+//		this.runOnUiThread( new Runnable(){
+//			@Override
+//			public void run() {
+		View container = findViewById(R.id.fragment_container_gallery); 
+		if(container!=null){
+			FragmentManager manager = getFragmentManager();
+			Fragment fragment = manager.findFragmentById(R.id.fragment_container_gallery);
+			Log.d(TAG,"fragment: "+fragment);
+			if(fragment!=null){
+				Log.d(TAG,"remove");
+				manager.beginTransaction().remove(fragment).commit();
+			}else{
+				Log.d(TAG,"add");
+				SubmissionGalleryFragment galleryFragment = new SubmissionGalleryFragment();
+				galleryFragment.setArguments(new Bundle());
+				manager.beginTransaction().add(R.id.fragment_container_gallery, galleryFragment).commit();
+			}
+		}
+		//manager.findFragmentByTag(tag)
+//			}
+//		});
+*/
 	}
 	
 	public void onClickGalleryButton(View v){

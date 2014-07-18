@@ -114,6 +114,102 @@ InputMethodManager keyboard = (InputMethodManager)getSystemService(Context.INPUT
 
 ## Fragment
 
+### Lifecycle
+- onAttach
+- onCreate - initialize essentials
+- onCreateView - return a (root) view (first draw)
+- onActivityCreated
+- onStart
+- onResume
+- onPause - commit persistant changes beyond session
+- onStop
+- onDestroyView
+- onDestroy
+- onDetach
+
+
+### Lifecycle in action
+```
+# [open/add]
+Activity - onCreate (null)
+Fragment - onAttach
+Fragment - onCreate (null)
+Fragment - onCreateView
+Fragment - onActivityCreated (null)
+Activity - onStart
+Fragment - onStart
+Activity - onResume
+Fragment - onResume
+
+# [close]
+Fragment - onPause
+Activity - onPause
+Fragment - onSaveInstanceState (Bundle)
+Activity - onSaveInstanceState (Bundle)
+Fragment - onStop
+Activity - onStop
+
+# [reopen]
+Activity - onRestart
+Activity - onStart
+Fragment - onStart
+Activity - onResume
+Fragment - onResume
+
+# [remove]
+Fragment - onPause
+Fragment - onStop
+Fragment - onDestroyView
+Fragment - onDestroy
+Fragment - onDetach
+
+# [readd]
+Fragment - onAttach
+Fragment - onCreate (null)
+Fragment - onCreateView
+Fragment - onActivityCreated (null)
+Fragment - onStart
+Fragment - onResume
+Fragment - onPause
+
+# [rotate]
+Fragment - onPause
+Activity - onPause
+Fragment - onSaveInstanceState (Bundle)
+Activity - onSaveInstanceState (Bundle)
+Fragment - onStop
+Activity - onStop
+Fragment - onDestroyView
+Fragment - onDestroy
+Fragment - onDetach
+Activity - onDestroy
+Fragment - onAttach
+Fragment - onCreate (Bundle/null)
+Activity - onCreate (Bundle)
+Fragment - onCreateView
+Fragment - onActivityCreated (Bundle/null)
+Activity - onStart
+Fragment - onStart
+Activity - onRestoreInstanceState (Bundle)
+Activity - onResume
+Fragment - onResume
+
+# [push]
+Fragment - onPause
+Activity - onPause
+Fragment - onSaveInstanceState (Bundle)
+Activity - onSaveInstanceState (Bundle)
+Fragment - onStop
+Activity - onStop
+
+# [pop]
+Activity - onRestart
+Activity - onStart
+Fragment - onStart
+Activity - onResume
+Fragment - onResume
+
+```
 
 
 
@@ -127,7 +223,20 @@ intent
 
 
 ## Service
+### Lifecycle
+- onCreate
+- onBind
+- onHandleIntent
+- onStartCommand
+- onDestroy
 
+
+### Lifecycle in action
+```
+# [start]
+
+# []
+```
 
 run forever (independent of creator): Activity.startService() + Service.onStartCommand()
 	 + onBind(return null;)
@@ -143,6 +252,30 @@ start
 bind
 unbind
 stop
+
+
+
+## Size/DPI/Res
+
+### Size
+```
+small
+normal
+large
+xlarge
+```
+
+### DPI
+```
+  ldpi ~120 (0.75x)
+  mdpi ~160 (1.0x)
+  hdpi ~240 (1.5x)
+ xhdpi ~320 (2.0x)
+xxdhpi ~480 (4.0x)
+```
+
+
+
 
 
 
@@ -197,7 +330,6 @@ RelativeLayout --
 
 ### TODO:
 
-* push/pop activity state save/restore/delete
 * dynamic positioning
 - saving fragment state
 * service (disneyid) across activities 

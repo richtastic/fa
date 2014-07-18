@@ -215,8 +215,9 @@ public class Networking {
 		return returnString;
 	}
 	public static Object connectionResultToKnownType(URLConnection connection, int expectedType){
+		InputStream inStream;
 		try{
-			InputStream inStream = connection.getInputStream();
+			inStream = connection.getInputStream();
 			//String contentType = connection.getContentType();
 			//Object response = connection.getContent();
 			if(expectedType==TYPE_EXPECTED_IMAGE){
@@ -235,7 +236,8 @@ public class Networking {
 		return null;
 	}
 	public static String instreamToString(InputStream inStream){
-		return readInputAsString(inStream);
+		String str = readInputAsString(inStream);
+		return str;
 	}
 	public static Bitmap instreamToBitmap(InputStream inStream){
 		Bitmap bitmap = BitmapFactory.decodeStream(inStream);
@@ -353,7 +355,14 @@ public class Networking {
 			}catch(IOException e){ e.printStackTrace(); return null; }
 			// return data
 			if(this.isCancelled()){ return null; }
-			return Networking.connectionResultToKnownType(connection, requestExpectedType);
+			Object object = Networking.connectionResultToKnownType(connection, requestExpectedType);
+			try{ // check that stream is closed before returning
+				InputStream inStream = connection.getInputStream();
+				inStream.close();
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+			return object;
 		}
 		@Override
 		protected void onPreExecute(){
