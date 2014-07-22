@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.richtastic.code.*;
 import com.richtastic.code.Networking.*;
 
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 //import android.support.v4.app.*;
 import android.app.Activity;
@@ -47,6 +48,12 @@ private ServiceConnection mConnection = new ServiceConnection(){
 		mMessenger = null;
 	}
 };
+	private BroadcastReceiver br = new BroadcastReceiver(){
+		@Override
+		public void onReceive(Context arg0, Intent arg1) {
+			Log.d(TAG,"received: "+arg0+" "+arg1);
+		}
+	};
 	// ------------------------------------------------------------------------------------------
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -64,9 +71,6 @@ private ServiceConnection mConnection = new ServiceConnection(){
 //Intent serviceIntent = new Intent(this, ReconstructionService.class);
 //startService(serviceIntent);
 //stopService(serviceIntent);
-			
-			
-//			
 //			BroadcastReceiver receiver;
 //			IntentFilter filter = new IntentFilter();
 //			this.registerReceiver(receiver, filter);
@@ -127,11 +131,14 @@ this.bindService(serviceIntent, mConnection, flags);
 	protected void onResume(){
 		super.onResume();
 		Log.d(TAG, "StartupActivity - onResume "+data);
+		//LocalBroadcastManager.getInstance(this).registerReceiver(br, new IntentFilter(FeatureIdentificationService.INTENT_HELLO));
+		registerReceiver(br, new IntentFilter(FeatureIdentificationService.INTENT_HELLO));
 	}
 	@Override
 	protected void onPause(){
 		super.onPause();
 		Log.d(TAG, "StartupActivity - onPause");
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(br);
 	}
 	@Override
 	protected void onSaveInstanceState(Bundle outState){

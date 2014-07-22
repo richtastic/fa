@@ -1,15 +1,19 @@
 package com.richtastic.structuresystem;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.*;
 
 public class FeatureIdentificationService extends Service{
+	public static final String INTENT_HELLO = "FeatureIdentificationService.INTENT_HELLO";
 	private static final String TAG = "FeatureIdentificationService";
 	private Messenger mMessenger = new Messenger( new FeatureIdentificationHandler() );
 	private boolean allowRebind = true;
@@ -22,16 +26,28 @@ public class FeatureIdentificationService extends Service{
 	@Override
 	public void onStart(Intent intent, int startId){
 		Log.d(TAG,"FeatureIdentificationService - onStart("+intent+","+startId+")");
+		
 		super.onStart(intent, startId);
 	}
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId){
 		Log.d(TAG,"FeatureIdentificationService - onStartCommand("+intent+","+flags+","+startId+")");
-		return super.onStartCommand(intent, flags, startId);
+		int val = super.onStartCommand(intent, flags, startId);
+		return val;
 	}
 	@Override
 	public IBinder onBind(Intent intent) {
 		Log.d(TAG,"FeatureIdentificationService - onBind("+intent+")");
+		
+		AsyncTask<Object, Object, Object> task = new AsyncTask<Object, Object, Object>(){
+			@Override
+			protected Object doInBackground(Object... arg0) {
+				doWork();
+				return null;
+			}
+		};
+		task.execute("bla");
+		
 		return mMessenger.getBinder();
 	}
 	@Override
@@ -50,10 +66,30 @@ public class FeatureIdentificationService extends Service{
 		// 
 		super.onDestroy();
 	}
-	public static class FeatureIdentificationHandler extends Handler{
+	private class FeatureIdentificationHandler extends Handler{
+		// get weakreference to FeatureIdentificationService.this
 		@Override
 		public void handleMessage(Message message){
 			Log.d(TAG,"GOT MESSAGE "+message.what+" : "+message);
+			Intent intent = new Intent(INTENT_HELLO);
+			FeatureIdentificationService.this.sendBroadcast(intent);
 		}
+	}
+	
+	private void doWork(){
+		int i;
+		for(i=0;i<=100;++i){
+			Log.d(TAG," iteration "+i);
+			if(i%10==0 && i>0){
+				Intent intent = new Intent(INTENT_HELLO);
+				this.sendBroadcast(intent);
+			}
+			try{
+				Thread.sleep(1000);
+			}catch(InterruptedException e){
+				e.printStackTrace();
+			}
+		}
+		Log.d(TAG," done ");
 	}
 }

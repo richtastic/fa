@@ -334,6 +334,7 @@ RelativeLayout --
 - saving fragment state
 * service (disneyid) across activities 
 - optimized lists (re-using rows/cells whatnot) - ListView?
+- audio/sounds
 - mem caching
 - disk caching
 - auto-loading/notifying image (receiver) on bitmap ready
