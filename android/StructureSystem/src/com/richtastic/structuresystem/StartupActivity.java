@@ -36,6 +36,12 @@ public class StartupActivity extends ActionBarActivity {
 	// ------------------------------------------------------------------------------------------
 	private int data = 0;
 private Messenger mMessenger = null;
+private Messenger mMessengerReceiver = new Messenger( new Handler(){
+	@Override
+	public void handleMessage(Message message){
+		Log.d(TAG,"ACTIVITY GOT MESSAGE "+message.what+" : "+message);
+	}
+});
 private ServiceConnection mConnection = new ServiceConnection(){
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder binder){
@@ -68,12 +74,9 @@ private ServiceConnection mConnection = new ServiceConnection(){
 			Log.d(TAG,"found: "+savedInstanceState.getInt(STATE_DATA));
 		}else{ // new
 			Log.d(TAG,"new from scratch "+data);
-//Intent serviceIntent = new Intent(this, ReconstructionService.class);
-//startService(serviceIntent);
+Intent serviceIntent = new Intent(this, ReconstructionService.class);
+startService(serviceIntent);
 //stopService(serviceIntent);
-//			BroadcastReceiver receiver;
-//			IntentFilter filter = new IntentFilter();
-//			this.registerReceiver(receiver, filter);
 		}
 
 Intent serviceIntent = new Intent(this, FeatureIdentificationService.class);
@@ -138,7 +141,8 @@ this.bindService(serviceIntent, mConnection, flags);
 	protected void onPause(){
 		super.onPause();
 		Log.d(TAG, "StartupActivity - onPause");
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(br);
+		//LocalBroadcastManager.getInstance(this).unregisterReceiver(br);
+		unregisterReceiver(br);
 	}
 	@Override
 	protected void onSaveInstanceState(Bundle outState){
@@ -195,8 +199,8 @@ if(mMessenger!=null){
 		Log.d(TAG,"...click...");
 		
 if(mMessenger!=null){
-	Message message = Message.obtain(null, 4); // Message.obtain();
-	message.replyTo = mMessenger;
+	Message message = Message.obtain(null, 123456789); // Message.obtain();
+	message.replyTo = mMessengerReceiver;// mMessenger;
 	try {
 		mMessenger.send(message);
 	} catch (RemoteException e) {
@@ -230,8 +234,8 @@ if(mMessenger!=null){
 	
 	public void onClickGalleryButton(View v){
 		Log.d(TAG,"gallery...");
-		Intent pushIntent = new Intent(this,SubmissionGalleryActivity.class);
-//Intent pushIntent = new Intent(this,StartupActivity.class);
+		//Intent pushIntent = new Intent(this,SubmissionGalleryActivity.class);
+Intent pushIntent = new Intent(this,StartupActivity.class);
 		//pushIntent.putExtra("EXTRA","qwe");
 		startActivityForResult(pushIntent, 99);
 	}

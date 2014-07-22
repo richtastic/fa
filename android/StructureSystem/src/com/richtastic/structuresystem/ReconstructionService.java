@@ -1,12 +1,14 @@
 package com.richtastic.structuresystem;
 
 //import android.app.Service;
+import android.annotation.SuppressLint;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.Notification.Builder;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -20,30 +22,59 @@ public class ReconstructionService extends IntentService{
 	public ReconstructionService(){
 		super("ReconstructionService");
 	}
+	@SuppressLint("NewApi")
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		Log.d(TAG," onHandleIntent");
-		int id = 1234567;
+		int id = 1;
 		Intent request = new Intent(this, StartupActivity.class);
-		request.setFlags(Notification.FLAG_ONGOING_EVENT); // request.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		request.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		request.setFlags(Notification.FLAG_ONGOING_EVENT);
 		PendingIntent pi = PendingIntent.getActivity(this, 0, request, Notification.FLAG_ONGOING_EVENT);
 		// getApplicationContext()
-		Notification notification = new Notification.Builder(this).setContentTitle("TITLE GOES HERE").setContentText("LONG DESC HERE").setContentIntent(pi).build();
+		Notification notification;
+//		if(android.os.Build.VERSION.SDK_INT>=android.os.Build.VERSION_CODES.JELLY_BEAN){
+//			notification = new Notification.Builder(this).setContentTitle("TITLE GOES HERE").setContentText("LONG DESC HERE")
+//					.setContentIntent(pi).setWhen(System.currentTimeMillis()).setSmallIcon(R.drawable.ic_launcher).build();
+//		}else{
+			notification = new Notification(R.drawable.ic_launcher,"JELLY BEAN TITLE",System.currentTimeMillis());
+			notification.setLatestEventInfo(this, "ITERATION","BLEH", pi);
+//		}
 		//new Notification(R.drawable.ic_launcher,"Reconstruction Background",System.currentTimeMillis());
-		notification.flags = Notification.FLAG_ONGOING_EVENT;
+		//notification.flags = Notification.FLAG_ONGOING_EVENT;
+		notification.flags = Notification.FLAG_FOREGROUND_SERVICE;
 		
 		startForeground(id, notification);
 		
-		NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE); 
-		
+		NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		//mNotificationManager.notify(id, notification);
+// http://stackoverflow.com/questions/6391870/how-exactly-to-use-notification-builder
 		// do work
 		int i;
-		for(i=0;i<=100;++i){
+		for(i=0;i<=40;++i){
 			Log.d(TAG," iteration "+i);
 			if(i%10==0 && i>0){
-				notification = new Notification(R.drawable.ic_launcher,"BG "+i,System.currentTimeMillis());
-				notification.setLatestEventInfo(this, "ITERATION", "it: "+i, pi);
-				notification.flags = Notification.FLAG_FOREGROUND_SERVICE;
+//				notification = new Notification(R.drawable.ic_launcher,"BG "+i,System.currentTimeMillis());
+//				notification.setLatestEventInfo(this, "ITERATION", "it: "+i, pi);
+//				notification.flags = Notification.FLAG_FOREGROUND_SERVICE;
+//				
+				//long[] vib = {500,200,500,200};
+				//.setVibrate(vib)
+//				request = new Intent(this, StartupActivity.class);
+//				pi = PendingIntent.getActivity(this, 1, request, Notification.FLAG_ONGOING_EVENT);
+				notification = new Notification.Builder(this)
+					.setContentIntent(pi)
+					.setSmallIcon(R.drawable.ic_launcher)
+					.setLargeIcon( BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_launcher))
+					.setTicker("ITERATION "+i)
+					.setAutoCancel(true)
+					.setOngoing(true)
+					.setContentTitle("doesnt do anything")
+					.setContentText("i am also contentless")
+					.setWhen(System.currentTimeMillis())
+					.build();
+				notification.flags = Notification.FLAG_FOREGROUND_SERVICE|Notification.PRIORITY_MAX|Notification.FLAG_ONGOING_EVENT|Notification.FLAG_NO_CLEAR; // Notification
+				
 				mNotificationManager.notify(id, notification);
 			}
 			try{

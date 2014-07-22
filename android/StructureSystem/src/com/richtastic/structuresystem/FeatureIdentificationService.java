@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.*;
 
@@ -17,6 +18,7 @@ public class FeatureIdentificationService extends Service{
 	private static final String TAG = "FeatureIdentificationService";
 	private Messenger mMessenger = new Messenger( new FeatureIdentificationHandler() );
 	private boolean allowRebind = true;
+	private AsyncTask task = null;
 	
 	@Override
 	public void onCreate(){
@@ -26,7 +28,6 @@ public class FeatureIdentificationService extends Service{
 	@Override
 	public void onStart(Intent intent, int startId){
 		Log.d(TAG,"FeatureIdentificationService - onStart("+intent+","+startId+")");
-		
 		super.onStart(intent, startId);
 	}
 	@Override
@@ -40,12 +41,37 @@ public class FeatureIdentificationService extends Service{
 		Log.d(TAG,"FeatureIdentificationService - onBind("+intent+")");
 		
 		AsyncTask<Object, Object, Object> task = new AsyncTask<Object, Object, Object>(){
+			private int iteration = 100; 
 			@Override
 			protected Object doInBackground(Object... arg0) {
-				doWork();
+				//doWork();
+				int i;
+				for(i=0;i<=iteration;++i){
+					if(this.isCancelled()){
+						break;
+					}
+					Log.d(TAG," iteration "+i);
+					if(i%10==0 && i>0){
+						Intent intent = new Intent(INTENT_HELLO);
+						FeatureIdentificationService.this.sendBroadcast(intent);
+					}
+					try{
+						Thread.sleep(1000);
+					}catch(InterruptedException e){
+						e.printStackTrace();
+					}
+				}
+				Log.d(TAG," done ");
 				return null;
 			}
+			@Override
+			protected void onCancelled(){
+				Log.d(TAG,"FeatureIdentificationService - onCancelled");
+				iteration = 0;
+				super.onCancelled();
+			}
 		};
+		this.task = task;
 		task.execute("bla");
 		
 		return mMessenger.getBinder();
@@ -63,7 +89,11 @@ public class FeatureIdentificationService extends Service{
 	@Override
 	public void onDestroy(){
 		Log.d(TAG,"FeatureIdentificationService - onDestroy");
-		// 
+		if(this.task!=null){
+			Log.d(TAG,"CANCEL THE TASK");
+			this.task.cancel(true);
+			this.task = null;
+		}
 		super.onDestroy();
 	}
 	private class FeatureIdentificationHandler extends Handler{
@@ -73,10 +103,17 @@ public class FeatureIdentificationService extends Service{
 			Log.d(TAG,"GOT MESSAGE "+message.what+" : "+message);
 			Intent intent = new Intent(INTENT_HELLO);
 			FeatureIdentificationService.this.sendBroadcast(intent);
+			Message reply = Message.obtain(null, 987654321);
+			try {
+				message.replyTo.send( reply );
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
-	
-	private void doWork(){
+	private int count = 0;
+	/*private void doWork(){
 		int i;
 		for(i=0;i<=100;++i){
 			Log.d(TAG," iteration "+i);
@@ -91,5 +128,5 @@ public class FeatureIdentificationService extends Service{
 			}
 		}
 		Log.d(TAG," done ");
-	}
+	}*/
 }
