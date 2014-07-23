@@ -17,6 +17,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         >
+        <!--
     	<EditText
     	    android:id="@+id/edit_text_field"
     	    android:layout_width="fill_parent"
@@ -38,14 +39,22 @@
     	    android:text="@string/hello_world"
     	    android:layout_below="@id/display_image"
 	    />
+	    android:layout_below="@id/text_title"
+	    android:layout_below="@id/edit_text_field"
+	    -->
+	    <ImageView
+    	    android:id="@+id/display_image"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    
+    	    android:contentDescription="wootness"
+    	    />
     	<Button
 	    	    android:id="@+id/gallery_button"
 	    	    android:layout_width="fill_parent"
 	    	    android:layout_height="wrap_content"
 	    	    android:layout_centerHorizontal="true"
 	    	    android:text="DO OPERATION"
-	    	    android:layout_below="@id/text_title"
-	    	    android:onClick="onClickButton"
 	    	    />
     </RelativeLayout>
 	<!-- Menu -->

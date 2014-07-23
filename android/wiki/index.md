@@ -456,7 +456,7 @@ picker
 
 tabs:activity
 
-
+contentprovider
 
 
 TableLayout --
@@ -464,15 +464,28 @@ TableLayout --
 RelativeLayout --
 
 
+## ListView + Adapter
+http://android.amberfog.com/?p=296
+```JAVA
+# fragment/activity
 
+
+# adapter -> call 
+
+
+
+```
+
+
+## Database + Simple CursorAdapter
 
 
 
 # DOIN SUM PLANNIN
 
 ### TODO:
+- optimized lists (re-using rows/cells whatnot) - ListView? / adapters
 
-- optimized lists (re-using rows/cells whatnot) - ListView?
 * dynamic positioning
 - saving fragment state
 	--- retains

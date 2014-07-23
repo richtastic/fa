@@ -1,0 +1,27 @@
+<!-- item_gallery_submission.xml -->
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_top"
+    android:layout_weight="1"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
+    <!--<Button
+	    	    android:id="@+id/fxn_button"
+	    	    android:layout_width="fill_parent"
+	    	    android:layout_height="wrap_content"
+	    	    android:layout_centerHorizontal="true"
+	    	    android:text="REFRESH THE CONTENT"
+	    	    android:onClick="onClickFxn"
+	    	    /> -->
+   	<TextView
+   	    android:id="@+id/title"
+   	    android:layout_width="fill_parent"
+        android:layout_height="40dp"
+   	    android:hint="@string/hello_world"
+   	    android:text="fill this in"
+    />
+</RelativeLayout>
+
+<!-- item_gallery_submission.xml -->

@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -6,24 +6,20 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical"
-    tools:context="com.richtastic.structuresystem.SubmissionGalleryActivity"
     android:background="#F633"
     >
-	<ScrollView
-	    android:layout_width="fill_parent"
-	    android:layout_height="fill_parent"
-	    android:fillViewport="true"
-	    android:background="#600F"
-	    >
-	    <Button
-    	    android:id="@+id/load_button"
-    	    android:layout_width="wrap_content"
-    	    android:layout_height="wrap_content"
-    	    android:text="I YAM A BUTTON"
-    	    />
-	</ScrollView>
-</LinearLayout>
+    <!-- tools:context="com.richtastic.structuresystem.SubmissionGalleryActivity" -->
+    <RelativeLayout
+        android:id="@+id/fragment_container_gallery"
+        android:layout_width="match_parent"
+    	android:layout_height="match_parent"
+        >
+        <!--  fragment container -->
+    </RelativeLayout>
+    
+    
+	
+</RelativeLayout>
 <!--
  
 android:background="@drawable/button_menu"

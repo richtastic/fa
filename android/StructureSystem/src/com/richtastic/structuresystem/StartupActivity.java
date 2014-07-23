@@ -74,8 +74,8 @@ private ServiceConnection mConnection = new ServiceConnection(){
 			Log.d(TAG,"found: "+savedInstanceState.getInt(STATE_DATA));
 		}else{ // new
 			Log.d(TAG,"new from scratch "+data);
-Intent serviceIntent = new Intent(this, ReconstructionService.class);
-startService(serviceIntent);
+//Intent serviceIntent = new Intent(this, ReconstructionService.class);
+//startService(serviceIntent);
 //stopService(serviceIntent);
 		}
 
@@ -234,8 +234,8 @@ if(mMessenger!=null){
 	
 	public void onClickGalleryButton(View v){
 		Log.d(TAG,"gallery...");
-		//Intent pushIntent = new Intent(this,SubmissionGalleryActivity.class);
-Intent pushIntent = new Intent(this,StartupActivity.class);
+		Intent pushIntent = new Intent(this,SubmissionGalleryActivity.class);
+//Intent pushIntent = new Intent(this,StartupActivity.class);
 		//pushIntent.putExtra("EXTRA","qwe");
 		startActivityForResult(pushIntent, 99);
 	}
