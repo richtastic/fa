@@ -474,23 +474,117 @@ http://android.amberfog.com/?p=296
 
 
 
+
+
 ```
 
 
 ## Database + Simple CursorAdapter
+
+## Large Audio / Video
+```JAVA
+// from bundle resources
+String file = "sound.mp3";
+MediaPlayer player = MediaPlayer.create(this, R.raw.sound); // file in res/raw/sound.mp3
+player.start();
+player.pause();
+player.stop();
+
+// from file on disk/memory
+
+
+// file on web
+String url = "http://johnrichie.com/TEMP/sound.mp3";
+MediaPlayer mediaPlayer = new MediaPlayer();
+mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+mediaPlayer.setDataSource(url);
+mediaPlayer.prepare(); // perform asynchronously
+mediaPlayer.start();
+mediaPlayer.release();
+mediaPlayer = null;
+
+// auto prepare async
+mediaPlayer.setOnPreparedListener(new OnPreparedListener() {
+	public void onPrepared(MediaPlayer player){
+		player.start(); // or present READY/PLAY button
+	}
+});
+
+// seek to time
+int currentPosition = mediaPlayer.getCurrentPosition();
+int skipMillisec = 1000;
+mediaPlayer.seekTo(Math.max(currentPosition+skipMillisec,mPlayer.getDuration()) );
+
+
+// listen for async errors:
+mediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener(){
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        Log.d(TAG,mp+" "+what+" "+extra);
+    }
+);
+
+// lock cpu
+mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+// lock wifi
+WifiLock wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+wifiLock.acquire();
+// unlock wifi
+wifiLock.release();
+// unlock cpu lock
+mediaPlayer.stop(); // .reset() .release()
+
+```
+
+
+
+## Small-Size Sound Effects
+```JAVA
+soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+soundPool.setOnLoadCompleteListener(new OnLoadCompleteListener(){
+	@Override
+	public void onLoadComplete(SoundPool pool, int sampleID, int status) {
+		int streamID = pool.play(sampleID, 1.0f,1.0f, 1, 0, 1.0f);
+		soundPool.pause(sampleID);
+		soundPool.resume(sampleID);
+		// ... done with sound
+		soundPool.stop(sampleID);
+	}
+});
+int soundID = soundPool.load(StartupActivity.this, R.raw.sound, 1);
+// ... done with pool
+soundPool.release();
+
+
+
+// file: assets/sounds/sound1.mp3
+int soundID = soundPool.load( this.getAssets().openFd("sounds/sound1"), 1 );
+
+```
+
+http://www.vogella.com/tutorials/AndroidMedia/article.html
+http://android-developers.blogspot.com/2013/08/respecting-audio-focus.html
+
+## Record Audio / Video
+```
+android.media.MediaRecorder
+```
+
+## Saving media back to system
+```
+```
+
 
 
 
 # DOIN SUM PLANNIN
 
 ### TODO:
-- optimized lists (re-using rows/cells whatnot) - ListView? / adapters
-
+- audio/sounds
+	http://developer.android.com/guide/topics/media/mediaplayer.html
 * dynamic positioning
 - saving fragment state
 	--- retains
-- audio/sounds
-	http://developer.android.com/guide/topics/media/mediaplayer.html
 - mem caching
 - disk caching
 - auto-loading/notifying image (receiver) on bitmap ready

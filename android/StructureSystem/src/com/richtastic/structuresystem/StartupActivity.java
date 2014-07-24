@@ -23,6 +23,11 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
+import android.media.SoundPool.OnLoadCompleteListener;
+import android.media.MediaPlayer;
+import android.media.SoundPool;
+import android.net.Uri;
 import android.os.*;
 import android.util.Log;
 import android.view.*;
@@ -113,13 +118,55 @@ this.bindService(serviceIntent, mConnection, flags);
 	}
 	
 	
-	
+	public SoundPool soundPool;
 	
 	@Override
 	protected void onStart(){
 		super.onStart();
 		Log.d(TAG, "StartupActivity - onStart");
+		
+		/*
+		MediaPlayer player = MediaPlayer.create(this, R.raw.sound); // file in res/raw/sound.mp3
+		player.start();
+		*/
+		/*
+		try{
+			String url = "http://johnrichie.com/TEMP/sound.mp3";
+			MediaPlayer mediaPlayer = new MediaPlayer();
+			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+			mediaPlayer.setDataSource(url);
+			mediaPlayer.prepare(); // perform asynchronously
+			mediaPlayer.start();
+		}catch(Exception e) {
+			Log.d(TAG,""+e);
+		}
+		*/
+		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+		
+		soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+	    soundPool.setOnLoadCompleteListener(new OnLoadCompleteListener(){
+			@Override
+			public void onLoadComplete(SoundPool pool, int sampleID, int status) {
+				int streamID = pool.play(sampleID, 1.0f,1.0f, 1, 0, 1.0f);
+				soundPool.pause(sampleID);
+				soundPool.resume(sampleID);
+				soundPool.stop(sampleID);
+			}
+	    });
+	    int soundID = soundPool.load(StartupActivity.this, R.raw.sound, 1);
+	    //int wtf = soundPool.play(soundID, 1.0,1.0, 1, 0, 1.0);
+	    
+	    
+		/*
+		Uri myUri = "?";
+		MediaPlayer mediaPlayer = new MediaPlayer();
+		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		mediaPlayer.setDataSource(getApplicationContext(), myUri);
+		mediaPlayer.prepare();
+		mediaPlayer.start();
+		*/
 	}
+	
 	@Override
 	protected void onRestart(){
 		super.onRestart();
