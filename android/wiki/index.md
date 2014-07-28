@@ -580,16 +580,16 @@ android.media.MediaRecorder
 # DOIN SUM PLANNIN
 
 ### TODO:
-- audio/sounds
-	http://developer.android.com/guide/topics/media/mediaplayer.html
 * dynamic positioning
 - saving fragment state
 	--- retains
+CACHE:
 - mem caching
 - disk caching
 - auto-loading/notifying image (receiver) on bitmap ready
 
-- opening/playing video (from file)
+- opening/playing video (from url, from internal, from file/RAM)
+	http://developer.android.com/guide/topics/media/mediaplayer.html
 
 
 
