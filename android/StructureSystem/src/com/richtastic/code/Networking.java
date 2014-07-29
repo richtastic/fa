@@ -22,10 +22,13 @@ import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 
 import com.richtastic.structuresystem.R;
+import com.richtastic.structuresystem.StructureSystemApplication;
 
+import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.ImageView;
 public class Networking {
@@ -50,7 +53,7 @@ public class Networking {
 	//
 	private static Networking instance;
 	// class methods
-	public static Networking getSharedInstance(){
+	public static Networking sharedInstance(){
 		if(instance==null){
 			instance = new Networking();
 		}
@@ -113,6 +116,7 @@ public class Networking {
 			Callback callback;
 			for(WeakReference<Callback> cb : concerned){
 				callback = cb.get();
+				Log.d(TAG,"alerting: "+cb+" = "+callback);
 				if(callback!=null){
 					callback.callback(params);
 				}
@@ -144,11 +148,12 @@ public class Networking {
 		public void start(){
 			if(task==null){
 				task = new WebTask();
-				task.execute(hash);
+				//task.execute(hash);
+				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, hash); // AsyncTask.SERIAL_EXECUTOR
 			}
 		}
 		@Override
-		public void callback(Object... params) {
+		public void callback(Object... params){
 			alertConcerned(params);
 			clear();
 		}
@@ -164,6 +169,7 @@ public class Networking {
 			currentRequests = new ArrayList<WebRequest>();
 		}
 		public void requestDidComplete(WebRequest request){
+			Log.d(TAG,"requestDidComplete ......................................");
 			currentRequests.remove(request);
 			request.clear();
 			checkNextRequest();
@@ -174,15 +180,47 @@ public class Networking {
 			checkNextRequest();
 		}
 		private void checkNextRequest(){
+			
+			Application context = StructureSystemApplication.getContext();
+			Log.d(TAG,"context: "+context);
+			Handler mainHandler = new Handler(context.getMainLooper());
+			Runnable runner = new Runnable(){
+				@Override
+				public void run() {
+					
+					Log.d(TAG,"check next: "+currentRequests.size());
+					if( currentRequests.size()<maxRequests ){
+						Log.d(TAG,"queue size: "+requestQueue.size());
+						if(requestQueue.size()>0){
+							WebRequest request = requestQueue.remove();
+							Log.d(TAG,"starting next request: "+request);
+							currentRequests.add(request);
+							request.start();
+						}else{
+							Log.d(TAG,"no more requests");
+						}
+					}
+					
+				}
+			};
+			
+			mainHandler.post(runner);
+			
+			/*
+			
 			Log.d(TAG,"check next: "+currentRequests.size());
-			if( currentRequests.size()>=0 && currentRequests.size()<maxRequests ){
+			if( currentRequests.size()<maxRequests ){
 				Log.d(TAG,"queue size: "+requestQueue.size());
 				if(requestQueue.size()>0){
 					WebRequest request = requestQueue.remove();
+					Log.d(TAG,"starting next request: "+request);
 					currentRequests.add(request);
 					request.start();
+				}else{
+					Log.d(TAG,"no more requests");
 				}
 			}
+			*/
 		}
 	}
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -191,7 +229,6 @@ public class Networking {
 		public int compare(WebRequest a, WebRequest b){
 			return a.getPriority()-b.getPriority();
 		}
-		
 	}
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	public static String readInputAsString(InputStream inStream){
@@ -280,6 +317,7 @@ public class Networking {
 		@SuppressWarnings("unchecked") // HashMap<...,...>
 		@Override
 		protected Object doInBackground(Object... params){ // url, useCache, headers (auth,content-type), method, callback
+			Log.d(TAG,"doInBackground");
 			// default params
 			int connectTimeout = 10000; // 10 seconds
 			int readTimeout = 15000; // 15 seconds
@@ -319,9 +357,10 @@ public class Networking {
 				}
 			}
 			// set callback
+			Log.d(TAG,"1 request callback: "+requestCallback);
 			callback = new WeakReference<Callback>(requestCallback);
 			// 
-			Log.d(TAG,"set callback: "+callback);
+			Log.d(TAG,"set callback: "+callback+" "+callback.get());
 			Log.d(TAG,"set url: "+requestURL);
 			Log.d(TAG,"set method: "+requestMethod);
 			Log.d(TAG,"set cache: "+requestCaching);
@@ -334,6 +373,7 @@ public class Networking {
 			try{ connection = (HttpURLConnection)url.openConnection();
 			}catch(IOException e){ e.printStackTrace(); return null; }
 			// set cache
+			Log.d(TAG,"2 using cache: ");
 			connection.setUseCaches(requestCaching);
 			// set properties
 			if(requestProperties!=null){
@@ -344,15 +384,18 @@ public class Networking {
 			// set timeouts
 			connection.setConnectTimeout(connectTimeout);
 			connection.setReadTimeout(readTimeout);
+			Log.d(TAG,"3 request method: "+connection);
 			// set method
 			try { connection.setRequestMethod(requestMethod);
 			}catch(ProtocolException e){ e.printStackTrace(); }
 			// get response code
 			try{ responseCode = connection.getResponseCode();
 			}catch (IOException e){ e.printStackTrace();}
+			Log.d(TAG,"4 response: "+responseCode);
 			// get response
 			try{ responseObject = connection.getContent();
 			}catch(IOException e){ e.printStackTrace(); return null; }
+			Log.d(TAG,"5 object: "+responseObject);
 			// return data
 			if(this.isCancelled()){ return null; }
 			Object object = Networking.connectionResultToKnownType(connection, requestExpectedType);
@@ -362,10 +405,13 @@ public class Networking {
 			}catch(IOException e){
 				e.printStackTrace();
 			}
+			Log.d(TAG,"6 returning");
 			return object;
 		}
 		@Override
 		protected void onPreExecute(){
+			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+			Log.d(TAG,"threads: "+Thread.activeCount());
 			super.onPreExecute();
 			Log.d(TAG,"onPreExecute");
 		}

@@ -120,11 +120,49 @@ this.bindService(serviceIntent, mConnection, flags);
 	
 	public SoundPool soundPool;
 	
+	private Callback imageCallback = new Callback(){
+		@Override
+		public void callback(Object... params) {
+			Log.d(TAG,"CALLED BACK: "+(params!=null?params.length:"<null>"));
+			if(params!=null && params.length>1){
+				Object response = params[1];
+				if(response!=null){
+					Bitmap bitmap = (Bitmap)response;
+					Log.d(TAG,"bitmap: "+bitmap);
+					ImageView image = (ImageView)findViewById(R.id.display_image);
+					image.setImageBitmap(bitmap);
+				}
+			}
+		}
+	};
+	
 	@Override
 	protected void onStart(){
 		super.onStart();
 		Log.d(TAG, "StartupActivity - onStart");
+		//this.playSomeAudio();
+		String[] images = {
+				"http://syntx.io/wp-content/uploads/2014/04/fp__android-logo-100x100.jpg",
+				"https://lh3.googleusercontent.com/-f3gI0qLSpxQ/AAAAAAAAAAI/AAAAAAAAA-U/rT6lwab0nLU/s100-c-k-no/photo.jpg",
+				"http://blog.inner-active.com/wp-content/uploads/2013/08/AndroidWallpaper.jpg",
+				"http://crackberry.com/sites/crackberry.com/files/styles/large/public/topic_images/2013/ANDROID.png?itok=xhm7jaxS",
+				"http://9to5google.files.wordpress.com/2013/02/android-key-lime-pie.png",
+				"http://uffenorde.com/wp-content/uploads/2010/12/androidEvolution1920x1080.png",
+				"http://uffenorde.com/wp-content/uploads/2011/03/androidHoneycombWallpaper1920x1080.jpg",
+				"http://ardentsoft.in/wp-content/uploads/2014/05/8795800-android-background.jpg",
+				"http://blogogist.com/wp-content/uploads/2013/10/android4.0.jpg"
+		};
 		
+		Networking nw = Networking.sharedInstance();
+		int i, len = images.length;
+		String url;
+		for(i=0;i<len;++i){
+			url = images[i];
+			Log.d(TAG,"ADDING: "+url);
+			nw.addRequest(url, Networking.TYPE_EXPECTED_IMAGE, imageCallback);
+		}
+	}
+	protected void playSomeAudio(){
 		/*
 		MediaPlayer player = MediaPlayer.create(this, R.raw.sound); // file in res/raw/sound.mp3
 		player.start();
@@ -141,8 +179,8 @@ this.bindService(serviceIntent, mConnection, flags);
 			Log.d(TAG,""+e);
 		}
 		*/
-		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		
+		this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
 		soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
 	    soundPool.setOnLoadCompleteListener(new OnLoadCompleteListener(){
 			@Override
@@ -154,7 +192,7 @@ this.bindService(serviceIntent, mConnection, flags);
 			}
 	    });
 	    int soundID = soundPool.load(StartupActivity.this, R.raw.sound, 1);
-	    //int wtf = soundPool.play(soundID, 1.0,1.0, 1, 0, 1.0);
+	    
 	    
 	    
 		/*
@@ -354,7 +392,7 @@ if(mMessenger!=null){
 //		task.execute(hash);
 		
 		// 'automated' image loading
-		Networking.getSharedInstance().addRequest("https://www.google.com/images/srpr/logo11w.png", Networking.TYPE_EXPECTED_IMAGE, new Callback(){
+		Networking.sharedInstance().addRequest("https://www.google.com/images/srpr/logo11w.png", Networking.TYPE_EXPECTED_IMAGE, new Callback(){
 			public void callback(Object... params){
 			Object response = params[1];
 			if(response!=null){

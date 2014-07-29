@@ -5,10 +5,15 @@ import android.util.Log;
 
 public class StructureSystemApplication extends Application{
 	private static String TAG = "StructureSystemApplication";
+	public static Application context;
+	public static Application getContext(){
+		return context;
+	}
 	@Override
 	public void onCreate(){
 		super.onCreate();
 		Log.d(TAG,"app created");
+		context = this;
 	}
 	@Override
 	public void onConfigurationChanged(Configuration newConfig){

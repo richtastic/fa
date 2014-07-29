@@ -668,5 +668,10 @@ http://developer.android.com/reference/android/os/AsyncTask.html
 
 
 
+AsyncTasks are not parallel ?
+http://www.techrepublic.com/blog/software-engineer/android-asynctask-behavior-changes-you-should-know/
+
+
+Thread
 
 
