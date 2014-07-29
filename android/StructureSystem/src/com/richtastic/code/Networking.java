@@ -180,34 +180,6 @@ public class Networking {
 			checkNextRequest();
 		}
 		private void checkNextRequest(){
-			
-			Application context = StructureSystemApplication.getContext();
-			Log.d(TAG,"context: "+context);
-			Handler mainHandler = new Handler(context.getMainLooper());
-			Runnable runner = new Runnable(){
-				@Override
-				public void run() {
-					
-					Log.d(TAG,"check next: "+currentRequests.size());
-					if( currentRequests.size()<maxRequests ){
-						Log.d(TAG,"queue size: "+requestQueue.size());
-						if(requestQueue.size()>0){
-							WebRequest request = requestQueue.remove();
-							Log.d(TAG,"starting next request: "+request);
-							currentRequests.add(request);
-							request.start();
-						}else{
-							Log.d(TAG,"no more requests");
-						}
-					}
-					
-				}
-			};
-			
-			mainHandler.post(runner);
-			
-			/*
-			
 			Log.d(TAG,"check next: "+currentRequests.size());
 			if( currentRequests.size()<maxRequests ){
 				Log.d(TAG,"queue size: "+requestQueue.size());
@@ -220,7 +192,7 @@ public class Networking {
 					Log.d(TAG,"no more requests");
 				}
 			}
-			*/
+			
 		}
 	}
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -373,7 +345,6 @@ public class Networking {
 			try{ connection = (HttpURLConnection)url.openConnection();
 			}catch(IOException e){ e.printStackTrace(); return null; }
 			// set cache
-			Log.d(TAG,"2 using cache: ");
 			connection.setUseCaches(requestCaching);
 			// set properties
 			if(requestProperties!=null){
@@ -384,18 +355,15 @@ public class Networking {
 			// set timeouts
 			connection.setConnectTimeout(connectTimeout);
 			connection.setReadTimeout(readTimeout);
-			Log.d(TAG,"3 request method: "+connection);
 			// set method
 			try { connection.setRequestMethod(requestMethod);
 			}catch(ProtocolException e){ e.printStackTrace(); }
 			// get response code
 			try{ responseCode = connection.getResponseCode();
 			}catch (IOException e){ e.printStackTrace();}
-			Log.d(TAG,"4 response: "+responseCode);
 			// get response
 			try{ responseObject = connection.getContent();
 			}catch(IOException e){ e.printStackTrace(); return null; }
-			Log.d(TAG,"5 object: "+responseObject);
 			// return data
 			if(this.isCancelled()){ return null; }
 			Object object = Networking.connectionResultToKnownType(connection, requestExpectedType);
@@ -405,7 +373,6 @@ public class Networking {
 			}catch(IOException e){
 				e.printStackTrace();
 			}
-			Log.d(TAG,"6 returning");
 			return object;
 		}
 		@Override

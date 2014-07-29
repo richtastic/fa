@@ -13,7 +13,7 @@ public class StructureSystemApplication extends Application{
 	public void onCreate(){
 		super.onCreate();
 		Log.d(TAG,"app created");
-		context = this;
+//		context = this;
 	}
 	@Override
 	public void onConfigurationChanged(Configuration newConfig){

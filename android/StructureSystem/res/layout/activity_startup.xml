@@ -55,6 +55,7 @@
 	    	    android:layout_height="wrap_content"
 	    	    android:layout_centerHorizontal="true"
 	    	    android:text="DO OPERATION"
+	    	    android:onClick="onDoOpClick"
 	    	    />
     </RelativeLayout>
 	<!-- Menu -->

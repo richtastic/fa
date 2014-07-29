@@ -136,30 +136,49 @@ this.bindService(serviceIntent, mConnection, flags);
 		}
 	};
 	
+	private Callback imageCallback2;
+	public void onDoOpClick(View v){
+		Log.d(TAG,"onDoOpClick");
+		imageCallback2 = new Callback(){
+			@Override
+			public void callback(Object... params) {
+				Log.d(TAG,"CALLED SECONDARY: "+(params!=null?params.length:"<null>"));
+			}
+		};
+		Networking nw = Networking.sharedInstance();
+		nw.addRequest(sourceImages[sourceImages.length-1], Networking.TYPE_EXPECTED_IMAGE, imageCallback2);
+	}
+	String[] sourceImages = {
+			"http://syntx.io/wp-content/uploads/2014/04/fp__android-logo-100x100.jpg",
+			"https://lh3.googleusercontent.com/-f3gI0qLSpxQ/AAAAAAAAAAI/AAAAAAAAA-U/rT6lwab0nLU/s100-c-k-no/photo.jpg",
+			"http://blog.inner-active.com/wp-content/uploads/2013/08/AndroidWallpaper.jpg",
+			"http://crackberry.com/sites/crackberry.com/files/styles/large/public/topic_images/2013/ANDROID.png?itok=xhm7jaxS",
+			"http://9to5google.files.wordpress.com/2013/02/android-key-lime-pie.png",
+			"http://uffenorde.com/wp-content/uploads/2010/12/androidEvolution1920x1080.png",
+			"http://uffenorde.com/wp-content/uploads/2011/03/androidHoneycombWallpaper1920x1080.jpg",
+			"http://ardentsoft.in/wp-content/uploads/2014/05/8795800-android-background.jpg",
+			"http://blogogist.com/wp-content/uploads/2013/10/android4.0.jpg"
+	};
 	@Override
 	protected void onStart(){
 		super.onStart();
 		Log.d(TAG, "StartupActivity - onStart");
 		//this.playSomeAudio();
-		String[] images = {
-				"http://syntx.io/wp-content/uploads/2014/04/fp__android-logo-100x100.jpg",
-				"https://lh3.googleusercontent.com/-f3gI0qLSpxQ/AAAAAAAAAAI/AAAAAAAAA-U/rT6lwab0nLU/s100-c-k-no/photo.jpg",
-				"http://blog.inner-active.com/wp-content/uploads/2013/08/AndroidWallpaper.jpg",
-				"http://crackberry.com/sites/crackberry.com/files/styles/large/public/topic_images/2013/ANDROID.png?itok=xhm7jaxS",
-				"http://9to5google.files.wordpress.com/2013/02/android-key-lime-pie.png",
-				"http://uffenorde.com/wp-content/uploads/2010/12/androidEvolution1920x1080.png",
-				"http://uffenorde.com/wp-content/uploads/2011/03/androidHoneycombWallpaper1920x1080.jpg",
-				"http://ardentsoft.in/wp-content/uploads/2014/05/8795800-android-background.jpg",
-				"http://blogogist.com/wp-content/uploads/2013/10/android4.0.jpg"
-		};
+		
 		
 		Networking nw = Networking.sharedInstance();
-		int i, len = images.length;
+		int i, len = sourceImages.length;
 		String url;
 		for(i=0;i<len;++i){
-			url = images[i];
+			url = sourceImages[i];
 			Log.d(TAG,"ADDING: "+url);
-			nw.addRequest(url, Networking.TYPE_EXPECTED_IMAGE, imageCallback);
+			//nw.addRequest(url, Networking.TYPE_EXPECTED_IMAGE, imageCallback);
+			Cache cache = Cache.sharedInstance();
+			Object obj = cache.getImmediate(url);
+			Log.d(TAG,"IMMEDIATE: "+obj);
+			obj = cache.get(url, Networking.TYPE_EXPECTED_IMAGE, imageCallback);
+			Log.d(TAG,"GETTING: "+obj);
+			break;
 		}
 	}
 	protected void playSomeAudio(){
