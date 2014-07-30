@@ -5,8 +5,11 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.PriorityQueue;
+//import java.util.PriorityQueue;
+//import java.util.Queue;
 import java.text.SimpleDateFormat;
+
+import com.google.common.collect.MinMaxPriorityQueue;
 
 import com.richtastic.code.Networking.WebRequest;
 import com.richtastic.code.Networking.WebRequestComparator;
@@ -19,7 +22,7 @@ public class CacheMemory {
 	private static String TAG = "CacheMemory";
 	public static String EVENT_ = "EVENT_";
 	public static final String DEFAULT_DIRECTORY_PATH = "/";
-	public static final long DEFAULT_SIZE_BYTES = 20*1024*1024; // 10 MB
+	public static final long DEFAULT_SIZE_BYTES = 15*1024*1024; // 10 MB
 	public static final long DEFAULT_STALE_SECONDS = 1*60*60; // 1 hour
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	private static CacheMemory _cache;
@@ -33,12 +36,14 @@ public class CacheMemory {
 	private long bytesUsed;
 	private long bytesTotal;
 	protected HashMap<String,MemoryEntry> memoryHash;
-	protected PriorityQueue<MemoryEntry> lruQueue;
+	//protected PriorityQueue<MemoryEntry> lruQueue;
+	protected MinMaxPriorityQueue<MemoryEntry> lruQueue;
 	public CacheMemory(){
 		memoryHash = new HashMap<String,MemoryEntry>();
 		bytesTotal = DEFAULT_SIZE_BYTES;
 		MemoryEntryLRUComparator compare = new MemoryEntryLRUComparator();
-		lruQueue = new PriorityQueue<MemoryEntry>(1,compare);
+		//lruQueue = new PriorityQueue<MemoryEntry>(1,compare);
+		lruQueue = MinMaxPriorityQueue.orderedBy(compare).create();
 	}
 	public Object get(String url){
 		MemoryEntry entry = memoryHash.get(url);
@@ -46,6 +51,9 @@ public class CacheMemory {
 			SoftReference<Object>reference = entry.data;
 			Object object = reference.get();
 			if(object!=null){ // hit
+				lruQueue.remove(entry);
+				entry.updateAccessed();
+				lruQueue.add(entry);
 				return object;
 			}else{ // miss - explicit delete
 				synchronized(this){
@@ -83,13 +91,38 @@ public class CacheMemory {
 		}
 		return null;
 	}
-	synchronized public void clearOldEntries(Date date){
-		// remove all entries before date
+	synchronized public void clearOldEntries(Date date){ // remove all entries before date
 		clearNullEntries();
+		MemoryEntry entry = lruQueue.peek();
+		while(entry!=null && entry.timestamp.compareTo(date)<0){
+			clearEntry(entry.url);
+			entry = lruQueue.peek(); // check next
+		}
 	}
-	synchronized public void clearNewEntries(Date date){
-		// remove all entries after date
+	synchronized public void clearNewEntries(Date date){ // remove all entries after date
 		clearNullEntries();
+		MemoryEntry entry = lruQueue.peekLast();
+		while(entry!=null && entry.timestamp.compareTo(date)>0){
+			clearEntry(entry.url);
+			entry = lruQueue.peekLast(); // check next
+		}
+		/*
+		MemoryEntry[] entries = (MemoryEntry[])lruQueue.toArray(); // MinMaxQueue
+		MemoryEntry entry;
+		if(entries.length>0){
+			int i = entries.length-1;
+			entry = entries[i];
+			while(i>=0 && entry!=null && entry.timestamp.compareTo(date)<0){
+				lruQueue.remove(entry); // pop off back
+				memoryHash.remove(entry.url);
+				entry.clear();
+				--i;
+				if(i>=0){
+					entry = entries[i];					
+				}
+			}
+		}
+		*/
 	}
 	synchronized public void clearNullEntries(){ // remove any hash entry with null-softreferences
 		for(Entry<String,MemoryEntry> hash : memoryHash.entrySet()){
@@ -104,9 +137,9 @@ public class CacheMemory {
 		if(entry!=null){
 			lruQueue.remove(entry);
 			memoryHash.remove(url);
-			bytesUsed -= entry.size;
 			Log.d(TAG,"removed current entry: "+url);
 			entry.clear();
+			bytesUsed -= entry.size;
 		}
 	}
 	synchronized public void clearAllEntries(){ // remove all
@@ -154,6 +187,9 @@ public class CacheMemory {
 			String disp = new SimpleDateFormat("yyyy-MM-dd'T' HH:mm:ss").format(timestamp);
 			Log.d(TAG,"new memory entry: "+this.toString());
 		}
+		public void updateAccessed(){ // update LRU priority
+			timestamp = new Date();
+		}
 		public void clear(){
 			timestamp = null;
 			size = 0;
@@ -171,7 +207,7 @@ public class CacheMemory {
 	public static class MemoryEntryLRUComparator implements Comparator<MemoryEntry>{
 		@Override
 		public int compare(MemoryEntry a, MemoryEntry b){
-			int timeDiff = a.timestamp.compareTo(b.timestamp);
+			int timeDiff = b.timestamp.compareTo(a.timestamp);
 			if(a==b){
 				return 0;
 			}else if(timeDiff<0){

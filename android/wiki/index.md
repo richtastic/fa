@@ -675,3 +675,14 @@ http://www.techrepublic.com/blog/software-engineer/android-asynctask-behavior-ch
 Thread
 
 
+
+
+
+
+
+http://code.google.com/p/guava-libraries/
+git clone https://code.google.com/p/guava-libraries.docs/
+
+
+
+
