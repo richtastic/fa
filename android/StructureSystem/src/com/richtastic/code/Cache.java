@@ -39,6 +39,9 @@ public class Cache {
 		requestList.checkAddRequest(network, url, type, callback);
 		return data;
 	}
+	public Object getImage(String url, Callback callback){
+		return get(url, Networking.TYPE_EXPECTED_IMAGE, callback);
+	}
 	public Object get(String url, int type, Callback callback){ // get from cache, else get from source
 		Object data = memoryCache.get(url);
 		if(data!=null){ // memory hit
@@ -59,6 +62,10 @@ public class Cache {
 		Log.d(TAG,"resultD: "+responseObject);
 		memoryCache.set(url, result);
 		diskCache.set(url,result);
+	}
+	public String toString(){
+		String str = "[Cache:\n"+memoryCache.toString()+"\n]";
+		return str;
 	}
 	
 	public static class DelayedRequestList implements Callback{

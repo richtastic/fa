@@ -124,6 +124,7 @@ this.bindService(serviceIntent, mConnection, flags);
 		@Override
 		public void callback(Object... params) {
 			Log.d(TAG,"CALLED BACK: "+(params!=null?params.length:"<null>"));
+			Log.d(TAG,"CACHE: "+Cache.sharedInstance().toString());
 			if(params!=null && params.length>1){
 				Object response = params[1];
 				if(response!=null){
@@ -158,6 +159,7 @@ this.bindService(serviceIntent, mConnection, flags);
 		obj = cache.get(url, Networking.TYPE_EXPECTED_IMAGE, imageCallback);
 	}
 	String[] sourceImages = {
+			//"http://www.idonotexts.com/jpasd.jpg",
 			"http://syntx.io/wp-content/uploads/2014/04/fp__android-logo-100x100.jpg",
 			"https://lh3.googleusercontent.com/-f3gI0qLSpxQ/AAAAAAAAAAI/AAAAAAAAA-U/rT6lwab0nLU/s100-c-k-no/photo.jpg",
 			"http://blog.inner-active.com/wp-content/uploads/2013/08/AndroidWallpaper.jpg",
@@ -168,13 +170,24 @@ this.bindService(serviceIntent, mConnection, flags);
 			"http://ardentsoft.in/wp-content/uploads/2014/05/8795800-android-background.jpg",
 			"http://blogogist.com/wp-content/uploads/2013/10/android4.0.jpg"
 	};
+	//int sourceImageIndex = 0;
 	@Override
 	protected void onStart(){
 		super.onStart();
 		Log.d(TAG, "StartupActivity - onStart");
 		//this.playSomeAudio();
 		
-		
+		/*
+		ViewGroup view =(ViewGroup)findViewById(R.id.layout_top);
+		Log.d(TAG,"view: "+view);
+		if(view!=null){
+			String url = sourceImages[7];
+			Log.d(TAG,"LOADING ... "+url);
+			ImageCallbackView image = new ImageCallbackView(this);
+			view.addView(image);
+			image.loadImage(url);
+		}
+		*/
 		Networking nw = Networking.sharedInstance();
 		int i, len = sourceImages.length;
 		String url;
@@ -187,9 +200,9 @@ this.bindService(serviceIntent, mConnection, flags);
 			Log.d(TAG,"IMMEDIATE: "+obj);
 			obj = cache.get(url, Networking.TYPE_EXPECTED_IMAGE, imageCallback);
 			Log.d(TAG,"GETTING: "+obj);
-			break;
+			//break;
 		}
-		// 
+		
 	}
 	protected void playSomeAudio(){
 		/*

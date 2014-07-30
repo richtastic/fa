@@ -148,8 +148,7 @@ public class Networking {
 		public void start(){
 			if(task==null){
 				task = new WebTask();
-				//task.execute(hash);
-				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, hash); // AsyncTask.SERIAL_EXECUTOR
+				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, hash); // task.execute(hash);
 			}
 		}
 		@Override
@@ -185,11 +184,8 @@ public class Networking {
 				Log.d(TAG,"queue size: "+requestQueue.size());
 				if(requestQueue.size()>0){
 					WebRequest request = requestQueue.remove();
-					Log.d(TAG,"starting next request: "+request);
 					currentRequests.add(request);
 					request.start();
-				}else{
-					Log.d(TAG,"no more requests");
 				}
 			}
 			
@@ -233,8 +229,10 @@ public class Networking {
 				Log.d(TAG,"isBitmap");
 				return instreamToBitmap(inStream);
 			}else if(expectedType==TYPE_EXPECTED_STRING){
+				Log.d(TAG,"isString");
 				return instreamToString(inStream);
 			}else if(expectedType==TYPE_EXPECTED_JSON){
+				Log.d(TAG,"isJSON");
 				return instreamToJSON(inStream);
 			}else{ // try to use MIMETypes from guava library
 				return null;
@@ -329,14 +327,7 @@ public class Networking {
 				}
 			}
 			// set callback
-			Log.d(TAG,"1 request callback: "+requestCallback);
 			callback = new WeakReference<Callback>(requestCallback);
-			// 
-			Log.d(TAG,"set callback: "+callback+" "+callback.get());
-			Log.d(TAG,"set url: "+requestURL);
-			Log.d(TAG,"set method: "+requestMethod);
-			Log.d(TAG,"set cache: "+requestCaching);
-			Log.d(TAG,"set props: "+requestProperties);
 			// set url
 			URL url;
 			try{ url = new URL(requestURL);

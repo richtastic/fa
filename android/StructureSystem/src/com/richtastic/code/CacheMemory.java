@@ -1,10 +1,15 @@
 package com.richtastic.code;
 
 import java.lang.ref.SoftReference;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.PriorityQueue;
 import java.text.SimpleDateFormat;
+
+import com.richtastic.code.Networking.WebRequest;
+import com.richtastic.code.Networking.WebRequestComparator;
 
 
 import android.graphics.Bitmap;
@@ -14,7 +19,7 @@ public class CacheMemory {
 	private static String TAG = "CacheMemory";
 	public static String EVENT_ = "EVENT_";
 	public static final String DEFAULT_DIRECTORY_PATH = "/";
-	public static final long DEFAULT_SIZE_BYTES = 10*1024*1024; // 10 MB
+	public static final long DEFAULT_SIZE_BYTES = 20*1024*1024; // 10 MB
 	public static final long DEFAULT_STALE_SECONDS = 1*60*60; // 1 hour
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	private static CacheMemory _cache;
@@ -28,9 +33,12 @@ public class CacheMemory {
 	private long bytesUsed;
 	private long bytesTotal;
 	protected HashMap<String,MemoryEntry> memoryHash;
+	protected PriorityQueue<MemoryEntry> lruQueue;
 	public CacheMemory(){
 		memoryHash = new HashMap<String,MemoryEntry>();
 		bytesTotal = DEFAULT_SIZE_BYTES;
+		MemoryEntryLRUComparator compare = new MemoryEntryLRUComparator();
+		lruQueue = new PriorityQueue<MemoryEntry>(1,compare);
 	}
 	public Object get(String url){
 		MemoryEntry entry = memoryHash.get(url);
@@ -40,28 +48,50 @@ public class CacheMemory {
 			if(object!=null){ // hit
 				return object;
 			}else{ // miss - explicit delete
-				memoryHash.remove(url);
+				synchronized(this){
+					entry = memoryHash.remove(url);
+					lruQueue.remove(entry);
+					bytesUsed -= entry.size;
+					entry.clear();
+				}
 			}
 		}
 		return null;
 	}
-	public Object set(String url, Object obj){
+	synchronized public Object set(String url, Object obj){
 		long sizeInBytes = CacheMemory.getSizeOf(obj);
+		MemoryEntry entry;
+		// remove entry if currently in queue/map
+		clearEntry(url);
 		// check if will fit into memory
-		// need to check if too much memory will be used, then add
-		MemoryEntry entry = new MemoryEntry(obj, sizeInBytes);
-		memoryHash.put(url,entry);
-		return entry;
+		long willBytesUsed = bytesUsed+sizeInBytes;
+		Log.d(TAG,"MEMORY USAGE: "+bytesUsed+" / "+bytesTotal+" => "+willBytesUsed);
+		if(sizeInBytes<=bytesTotal && willBytesUsed>bytesTotal){ // don't add if too big, make room if necessary 
+			Log.d(TAG,"need to remove items...");
+			while(lruQueue.size()>0 && willBytesUsed>bytesTotal){
+				entry = lruQueue.remove();
+				willBytesUsed -= entry.size;
+				bytesUsed -= entry.size;
+				Log.d(TAG,"made space from: "+entry);
+			}
+		}
+		if(willBytesUsed<=bytesTotal){
+			bytesUsed += sizeInBytes; // willBytesUsed
+			entry = new MemoryEntry(obj, url, sizeInBytes);
+			lruQueue.add(entry);
+			return entry;
+		}
+		return null;
 	}
-	public void clearOldEntries(Date date){
+	synchronized public void clearOldEntries(Date date){
 		// remove all entries before date
 		clearNullEntries();
 	}
-	public void clearNewEntries(Date date){
+	synchronized public void clearNewEntries(Date date){
 		// remove all entries after date
 		clearNullEntries();
 	}
-	public void clearNullEntries(){ // remove any hash entry with null-softreferences
+	synchronized public void clearNullEntries(){ // remove any hash entry with null-softreferences
 		for(Entry<String,MemoryEntry> hash : memoryHash.entrySet()){
 			MemoryEntry entry = hash.getValue();
 			if(entry.data.get()==null){
@@ -69,23 +99,37 @@ public class CacheMemory {
 			}
 		}
 	}
-	public void clearEntry(String url){
+	synchronized public void clearEntry(String url){
 		MemoryEntry entry = memoryHash.get(url);
 		if(entry!=null){
-			bytesUsed -= entry.size;
-			entry.clear();
+			lruQueue.remove(entry);
 			memoryHash.remove(url);
+			bytesUsed -= entry.size;
+			Log.d(TAG,"removed current entry: "+url);
+			entry.clear();
 		}
 	}
-	public void clearAllEntries(){ // remove all
+	synchronized public void clearAllEntries(){ // remove all
 		for(Entry<String,MemoryEntry> hash : memoryHash.entrySet()){
 			clearEntry( hash.getKey() );
 		}
 		memoryHash.clear(); // necessary?
+		lruQueue.clear();
 		bytesUsed = 0;
 	}
 	public void lowMemoryAlert(){
 		clearAllEntries();
+	}
+	public String toString(){
+		Object[] queued = lruQueue.toArray();
+		int i, len = queued.length;
+		String str = "[CacheMemory: ("+lruQueue.size()+")\n";
+		for(i=0; i<len; ++i){
+			MemoryEntry entry = (MemoryEntry)queued[i];
+			str += i+": "+entry+"\n";
+		}
+		str += "]";
+		return str;
 	}
 	// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	public static long getSizeOf(Object obj){
@@ -101,12 +145,14 @@ public class CacheMemory {
 		public Date timestamp;
 		public long size;
 		public SoftReference<Object> data;
-		public MemoryEntry(Object d, long bytes){
+		public String url;
+		public MemoryEntry(Object d, String u, long bytes){
 			timestamp = new Date();
-			size = bytes;
 			data = new SoftReference<Object>(d);
+			url = u;
+			size = bytes;
 			String disp = new SimpleDateFormat("yyyy-MM-dd'T' HH:mm:ss").format(timestamp);
-			Log.d(TAG,"timestamp: "+disp);
+			Log.d(TAG,"new memory entry: "+this.toString());
 		}
 		public void clear(){
 			timestamp = null;
@@ -115,6 +161,23 @@ public class CacheMemory {
 				data.clear();
 				data = null;
 			}
+		}
+		public String toString(){
+			String disp = new SimpleDateFormat("yyyy-MM-dd'T' HH:mm:ss").format(timestamp);
+			return "[MemoryEntry: "+url+" | "+size+" | "+disp+"]";
+		}
+	}
+	// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	public static class MemoryEntryLRUComparator implements Comparator<MemoryEntry>{
+		@Override
+		public int compare(MemoryEntry a, MemoryEntry b){
+			int timeDiff = a.timestamp.compareTo(b.timestamp);
+			if(a==b){
+				return 0;
+			}else if(timeDiff<0){
+				return -1;
+			}
+			return 1;
 		}
 	}
 	// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
