@@ -35,7 +35,7 @@ import android.util.*;
 import android.view.*;
 import android.widget.ImageView;
 
-public class StartupActivity extends ActionBarActivity {
+public class StartupActivity extends ActionBarActivity{
 	private static String TAG = "StartupActivity";
 	private static String STATE_DATA = "STATE_DATA";
 	// ------------------------------------------------------------------------------------------
@@ -145,8 +145,17 @@ this.bindService(serviceIntent, mConnection, flags);
 				Log.d(TAG,"CALLED SECONDARY: "+(params!=null?params.length:"<null>"));
 			}
 		};
+		/*
 		Networking nw = Networking.sharedInstance();
 		nw.addRequest(sourceImages[sourceImages.length-1], Networking.TYPE_EXPECTED_IMAGE, imageCallback2);
+		*/
+		String url = sourceImages[sourceImages.length-1];
+		Cache cache = Cache.sharedInstance();
+		Object obj = cache.getImmediate(url);
+		Log.d(TAG,"IMMEDIATE: "+obj);
+		obj = cache.get(url, Networking.TYPE_EXPECTED_IMAGE, imageCallback);
+		Log.d(TAG,"GETTING: "+obj);
+		obj = cache.get(url, Networking.TYPE_EXPECTED_IMAGE, imageCallback);
 	}
 	String[] sourceImages = {
 			"http://syntx.io/wp-content/uploads/2014/04/fp__android-logo-100x100.jpg",
@@ -180,6 +189,7 @@ this.bindService(serviceIntent, mConnection, flags);
 			Log.d(TAG,"GETTING: "+obj);
 			break;
 		}
+		// 
 	}
 	protected void playSomeAudio(){
 		/*

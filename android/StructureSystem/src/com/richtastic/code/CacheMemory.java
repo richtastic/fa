@@ -3,6 +3,7 @@ package com.richtastic.code;
 import java.lang.ref.SoftReference;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.text.SimpleDateFormat;
 
 
@@ -24,16 +25,23 @@ public class CacheMemory {
 		return _cache;
 	}
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	private long bytes;
+	private long bytesUsed;
+	private long bytesTotal;
 	protected HashMap<String,MemoryEntry> memoryHash;
 	public CacheMemory(){
 		memoryHash = new HashMap<String,MemoryEntry>();
-		bytes = DEFAULT_SIZE_BYTES;
+		bytesTotal = DEFAULT_SIZE_BYTES;
 	}
 	public Object get(String url){
 		MemoryEntry entry = memoryHash.get(url);
 		if(entry!=null){
-			return entry.data;
+			SoftReference<Object>reference = entry.data;
+			Object object = reference.get();
+			if(object!=null){ // hit
+				return object;
+			}else{ // miss - explicit delete
+				memoryHash.remove(url);
+			}
 		}
 		return null;
 	}
@@ -47,15 +55,34 @@ public class CacheMemory {
 	}
 	public void clearOldEntries(Date date){
 		// remove all entries before date
+		clearNullEntries();
 	}
 	public void clearNewEntries(Date date){
 		// remove all entries after date
+		clearNullEntries();
 	}
-	public void clearNullEntries(){
-		// go thru hash and remove any with softreferences to null
+	public void clearNullEntries(){ // remove any hash entry with null-softreferences
+		for(Entry<String,MemoryEntry> hash : memoryHash.entrySet()){
+			MemoryEntry entry = hash.getValue();
+			if(entry.data.get()==null){
+				clearEntry( hash.getKey() );
+			}
+		}
 	}
-	public void clearAllEntries(){
-		// remove all
+	public void clearEntry(String url){
+		MemoryEntry entry = memoryHash.get(url);
+		if(entry!=null){
+			bytesUsed -= entry.size;
+			entry.clear();
+			memoryHash.remove(url);
+		}
+	}
+	public void clearAllEntries(){ // remove all
+		for(Entry<String,MemoryEntry> hash : memoryHash.entrySet()){
+			clearEntry( hash.getKey() );
+		}
+		memoryHash.clear(); // necessary?
+		bytesUsed = 0;
 	}
 	public void lowMemoryAlert(){
 		clearAllEntries();
@@ -78,8 +105,16 @@ public class CacheMemory {
 			timestamp = new Date();
 			size = bytes;
 			data = new SoftReference<Object>(d);
-			String disp = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss").format(timestamp);
+			String disp = new SimpleDateFormat("yyyy-MM-dd'T' HH:mm:ss").format(timestamp);
 			Log.d(TAG,"timestamp: "+disp);
+		}
+		public void clear(){
+			timestamp = null;
+			size = 0;
+			if(data!=null){
+				data.clear();
+				data = null;
+			}
 		}
 	}
 	// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
