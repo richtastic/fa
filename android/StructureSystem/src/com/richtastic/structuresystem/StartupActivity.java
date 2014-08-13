@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.HashMap;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.richtastic.code.*;
 import com.richtastic.code.Networking.*;
@@ -263,6 +266,17 @@ this.bindService(serviceIntent, mConnection, flags);
 		Log.d(TAG, "StartupActivity - onResume "+data);
 		//LocalBroadcastManager.getInstance(this).registerReceiver(br, new IntentFilter(FeatureIdentificationService.INTENT_HELLO));
 		registerReceiver(br, new IntentFilter(FeatureIdentificationService.INTENT_HELLO));
+		
+		
+		// guava cache
+		LoadingCache<String,Bitmap> cache = CacheBuilder.newBuilder().build( new CacheLoader<String,Bitmap>(){
+			@Override
+			public Bitmap load(String key) throws Exception {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		});
+		
 	}
 	@Override
 	protected void onPause(){
